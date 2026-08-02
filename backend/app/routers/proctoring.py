@@ -97,6 +97,8 @@ async def get_proctor_summary(
             summary.screenshot_attempt_count += 1
         elif e.event_type == ProctorEventType.no_face_detected:
             summary.no_face_detected_count += 1
+        elif e.event_type == ProctorEventType.multiple_faces:
+            summary.multiple_faces_count += 1
     return summary
 
 

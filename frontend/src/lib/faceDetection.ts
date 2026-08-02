@@ -9,7 +9,7 @@ export function loadFaceDetectionModels(): Promise<void> {
   return modelsLoadedPromise;
 }
 
-export async function detectFacePresent(video: HTMLVideoElement): Promise<boolean> {
-  const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions());
-  return detection !== undefined;
+export async function detectFaceCount(video: HTMLVideoElement): Promise<number> {
+  const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+  return detections.length;
 }

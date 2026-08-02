@@ -17,6 +17,7 @@ const LABELS: Record<string, string> = {
   webcam_snapshot: "Webcam snapshot",
   screenshot_attempt: "Screenshot key pressed",
   no_face_detected: "No face detected",
+  multiple_faces: "Multiple faces detected",
 };
 
 function ProctorGalleryModal({
@@ -71,6 +72,7 @@ export function ProctorSummaryCard({ attemptId }: { attemptId: number }) {
     { label: "Webcam snapshots", count: summary.webcam_snapshot_count },
     { label: "Screenshot attempts", count: summary.screenshot_attempt_count },
     { label: "No face detected", count: summary.no_face_detected_count },
+    { label: "Multiple faces detected", count: summary.multiple_faces_count },
   ].filter((r) => r.count > 0);
 
   return (

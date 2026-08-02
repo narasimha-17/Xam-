@@ -30,4 +30,5 @@ class ProctorSummaryOut(BaseModel):
     webcam_snapshot_count: int = 0
     screenshot_attempt_count: int = 0
     no_face_detected_count: int = 0
+    multiple_faces_count: int = 0
     total_events: int = 0

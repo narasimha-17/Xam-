@@ -251,7 +251,8 @@ export type ProctorEventType =
   | "paste_attempt"
   | "webcam_snapshot"
   | "screenshot_attempt"
-  | "no_face_detected";
+  | "no_face_detected"
+  | "multiple_faces";
 
 export interface ProctorEventInput {
   event_type: ProctorEventType;
@@ -267,6 +268,7 @@ export interface ProctorSummary {
   webcam_snapshot_count: number;
   screenshot_attempt_count: number;
   no_face_detected_count: number;
+  multiple_faces_count: number;
   total_events: number;
 }
 

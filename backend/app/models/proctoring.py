@@ -15,6 +15,7 @@ class ProctorEventType(str, enum.Enum):
     webcam_snapshot = "webcam_snapshot"
     screenshot_attempt = "screenshot_attempt"
     no_face_detected = "no_face_detected"
+    multiple_faces = "multiple_faces"
 
 
 class ProctorEvent(Base):

@@ -25,7 +25,7 @@ import {
 import { fetchExamForStudent, startAttempt, submitAttempt } from "../lib/exams";
 import { logProctorEvent } from "../lib/proctoring";
 import {
-  detectFacePresent,
+  detectFaceCount,
   loadFaceDetectionModels,
 } from "../lib/faceDetection";
 import type { AnswerPayload } from "../types/api";
@@ -35,7 +35,9 @@ import { Modal } from "../components/ui/Modal";
 import { Loader, FullPageLoader } from "../components/ui/Loader";
 import { QuestionRenderer } from "../components/exam-take/QuestionRenderer";
 import { ReportQuestionModal } from "../components/exam-take/ReportQuestionModal";
-import { cn } from "../lib/utils";
+import { cn, shuffleWithSeed } from "../lib/utils";
+
+const VIOLATION_LIMIT = 5;
 
 function ExamPageShell({ children }: { children: ReactNode }) {
   return (
@@ -103,6 +105,9 @@ export function ExamTake() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const wasFullscreenRef = useRef(false);
   const handleSubmitRef = useRef<() => void>(() => {});
+  const [autoSubmitMessage, setAutoSubmitMessage] = useState<string | null>(null);
+  const autoSubmitTriggeredRef = useRef(false);
+  const violationCountRef = useRef(0);
 
   const [proctorConsent, setProctorConsent] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
@@ -132,6 +137,26 @@ export function ExamTake() {
       () => setViolationWarning(null),
       5000,
     );
+  }
+
+  function triggerAutoSubmit(overlayText: string, warnText: string) {
+    if (autoSubmitTriggeredRef.current) return;
+    autoSubmitTriggeredRef.current = true;
+    setAutoSubmitMessage(overlayText);
+    setTimeout(() => {
+      warn(warnText);
+      handleSubmitRef.current();
+    }, 2000);
+  }
+
+  function registerViolation() {
+    violationCountRef.current += 1;
+    if (violationCountRef.current >= VIOLATION_LIMIT) {
+      triggerAutoSubmit(
+        "Too many proctoring violations — submitting your exam…",
+        `${VIOLATION_LIMIT} proctoring violations were detected during this attempt — your exam has been submitted automatically.`,
+      );
+    }
   }
 
   function stopDeviceCheck() {
@@ -186,8 +211,10 @@ export function ExamTake() {
       setIsFullscreen(now);
       if (!now && wasFullscreenRef.current && examStarted && attemptId) {
         logProctorEvent(attemptId, { event_type: "fullscreen_exit" });
-        warn("You exited fullscreen — your exam is being submitted automatically.");
-        handleSubmitRef.current();
+        triggerAutoSubmit(
+          "Fullscreen exited — submitting your exam…",
+          "You exited fullscreen — your exam has been submitted automatically.",
+        );
       }
       wasFullscreenRef.current = now;
     }
@@ -207,6 +234,7 @@ export function ExamTake() {
     function handleVisibility() {
       if (document.hidden) {
         logProctorEvent(attemptId!, { event_type: "tab_switch" });
+        registerViolation();
         warn("Tab switch detected — this has been recorded.");
       }
     }
@@ -235,6 +263,7 @@ export function ExamTake() {
           event_type: "screenshot_attempt",
           snapshot_base64: captureSnapshot(),
         });
+        registerViolation();
         warn("Screenshot key detected — this has been recorded.");
       }
     }
@@ -259,6 +288,7 @@ export function ExamTake() {
     if (!examStarted || !attemptId || !webcamActive) return;
     let cancelled = false;
     let missedChecks = 0;
+    let multiFaceStreak = 0;
     let intervalId: ReturnType<typeof setInterval> | undefined;
 
     loadFaceDetectionModels()
@@ -267,18 +297,32 @@ export function ExamTake() {
         intervalId = setInterval(async () => {
           const video = videoRef.current;
           if (cancelled || !video || video.videoWidth === 0) return;
-          const facePresent = await detectFacePresent(video).catch(() => true); // don't false-flag on detector errors
-          if (!facePresent) {
+          const faceCount = await detectFaceCount(video).catch(() => 1); // don't false-flag on detector errors
+          if (faceCount === 0) {
             missedChecks += 1;
+            multiFaceStreak = 0;
             if (missedChecks === 2) {
               logProctorEvent(attemptId, {
                 event_type: "no_face_detected",
                 snapshot_base64: captureSnapshot(),
               });
+              registerViolation();
               warn("No face detected in frame — this has been recorded.");
+            }
+          } else if (faceCount > 1) {
+            missedChecks = 0;
+            multiFaceStreak += 1;
+            if (multiFaceStreak === 2) {
+              logProctorEvent(attemptId, {
+                event_type: "multiple_faces",
+                snapshot_base64: captureSnapshot(),
+              });
+              registerViolation();
+              warn("Multiple faces detected in frame — this has been recorded.");
             }
           } else {
             missedChecks = 0;
+            multiFaceStreak = 0;
           }
         }, 8_000);
       })
@@ -314,6 +358,7 @@ export function ExamTake() {
     return (e: ReactClipboardEvent) => {
       e.preventDefault();
       if (attemptId) logProctorEvent(attemptId, { event_type: type });
+      registerViolation();
       warn(
         type === "copy_attempt"
           ? "Copy is disabled during this exam — this has been recorded."
@@ -338,6 +383,13 @@ export function ExamTake() {
       exam.duration_minutes * 60_000
     );
   }, [attemptMutation.data, exam]);
+
+  // Seeded by attempt id so the order is randomized per attempt but stable
+  // across re-renders and page refreshes of the same in-progress attempt.
+  const shuffledQuestions = useMemo(() => {
+    if (!exam) return [];
+    return attemptId ? shuffleWithSeed(exam.questions, attemptId) : exam.questions;
+  }, [exam, attemptId]);
 
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
 
@@ -548,9 +600,9 @@ export function ExamTake() {
     );
   }
 
-  const question = exam.questions[currentIndex];
+  const question = shuffledQuestions[currentIndex];
   const answeredCount = Object.keys(answers).length;
-  const unansweredCount = exam.questions.length - answeredCount;
+  const unansweredCount = shuffledQuestions.length - answeredCount;
   const minutes =
     remainingMs !== null
       ? Math.max(0, Math.floor(remainingMs / 60000))
@@ -584,6 +636,12 @@ export function ExamTake() {
             <ShieldAlert size={16} /> {violationWarning}
           </div>
         )}
+        {autoSubmitMessage && (
+          <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 bg-ink/90 backdrop-blur-sm">
+            <Loader size="lg" />
+            <p className="text-sm font-medium text-white">{autoSubmitMessage}</p>
+          </div>
+        )}
         {!isFullscreen && (
           <button
             onClick={reEnterFullscreen}
@@ -598,7 +656,7 @@ export function ExamTake() {
               {exam.title}
             </h1>
             <p className="mt-1 truncate text-sm text-ink-muted">
-              Question {currentIndex + 1} of {exam.questions.length} ·{" "}
+              Question {currentIndex + 1} of {shuffledQuestions.length} ·{" "}
               {answeredCount} answered
               {markedForReview.size > 0 && ` · ${markedForReview.size} marked`}
             </p>
@@ -646,7 +704,7 @@ export function ExamTake() {
             ref={paletteRef}
             className="no-scrollbar flex flex-1 items-center gap-2 overflow-x-auto scroll-smooth"
           >
-            {exam.questions.map((q, i) => (
+            {shuffledQuestions.map((q, i) => (
               <button
                 key={q.id}
                 data-index={i}
@@ -744,11 +802,11 @@ export function ExamTake() {
           >
             <ChevronLeft size={16} /> Previous
           </Button>
-          {currentIndex < exam.questions.length - 1 ? (
+          {currentIndex < shuffledQuestions.length - 1 ? (
             <Button
               onClick={() =>
                 setCurrentIndex((i) =>
-                  Math.min(exam.questions.length - 1, i + 1),
+                  Math.min(shuffledQuestions.length - 1, i + 1),
                 )
               }
             >
@@ -781,7 +839,7 @@ export function ExamTake() {
             </div>
 
             <div className="grid max-h-72 grid-cols-6 gap-2 overflow-y-auto pr-1">
-              {exam.questions.map((q, i) => (
+              {shuffledQuestions.map((q, i) => (
                 <button
                   key={q.id}
                   onClick={() => {
