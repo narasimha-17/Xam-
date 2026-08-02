@@ -10,6 +10,7 @@ from app.models.exam import (
     TestCase,
     ExamAttempt,
     AttemptAnswer,
+    ExamFeedback,
 )
 from app.models.discussion import DiscussionThread, DiscussionPost
 from app.models.proctoring import ProctorEvent, ProctorEventType
@@ -30,6 +31,7 @@ __all__ = [
     "TestCase",
     "ExamAttempt",
     "AttemptAnswer",
+    "ExamFeedback",
     "DiscussionThread",
     "DiscussionPost",
     "ProctorEvent",

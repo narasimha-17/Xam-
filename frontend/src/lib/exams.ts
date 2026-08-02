@@ -6,6 +6,9 @@ import type {
   ExamAdmin,
   ExamAttempt,
   ExamCreateInput,
+  ExamFeedback,
+  ExamFeedbackInput,
+  ExamFeedbackSummary,
   ExamSafe,
   ExamSummary,
   GenerateQuestionsInput,
@@ -101,5 +104,20 @@ export async function reportQuestion(questionId: number, payload: QuestionReport
 
 export async function fetchQuestionReports(): Promise<QuestionReportAdmin[]> {
   const { data } = await api.get<QuestionReportAdmin[]>("/exams/reports/all");
+  return data;
+}
+
+export async function fetchExamFeedback(attemptId: number): Promise<ExamFeedback | null> {
+  const { data } = await api.get<ExamFeedback | null>(`/exams/attempts/${attemptId}/feedback`);
+  return data;
+}
+
+export async function submitExamFeedback(attemptId: number, payload: ExamFeedbackInput): Promise<ExamFeedback> {
+  const { data } = await api.post<ExamFeedback>(`/exams/attempts/${attemptId}/feedback`, payload);
+  return data;
+}
+
+export async function fetchExamFeedbackSummary(examId: number): Promise<ExamFeedbackSummary> {
+  const { data } = await api.get<ExamFeedbackSummary>(`/exams/${examId}/feedback-summary`);
   return data;
 }

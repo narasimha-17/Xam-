@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.exam import AttemptStatus, QuestionReportReason, QuestionType
 
@@ -299,3 +299,36 @@ class QuestionReportAdminOut(QuestionReportOut):
     reported_by: str
     your_answer: str | None
     correct_answer: str | None
+
+
+# ---------- Exam feedback ----------
+
+
+class ExamFeedbackIn(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    difficulty: str | None = None
+    comment: str | None = None
+
+
+class ExamFeedbackOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    rating: int
+    difficulty: str | None
+    comment: str | None
+    created_at: datetime
+
+
+class ExamFeedbackCommentOut(BaseModel):
+    rating: int
+    difficulty: str | None
+    comment: str | None
+    submitted_by: str
+    created_at: datetime
+
+
+class ExamFeedbackSummaryOut(BaseModel):
+    total_feedback: int
+    average_rating: float
+    difficulty_counts: dict[str, int]
+    comments: list[ExamFeedbackCommentOut]

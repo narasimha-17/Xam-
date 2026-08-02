@@ -1,13 +1,127 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { CheckCircle2, ListChecks, Percent, XCircle } from "lucide-react";
-import { fetchAttempt, fetchExamForStudent } from "../lib/exams";
+import { CheckCircle2, ListChecks, Percent, Star, XCircle } from "lucide-react";
+import { fetchAttempt, fetchExamFeedback, fetchExamForStudent, submitExamFeedback } from "../lib/exams";
 import type { AttemptAnswerResult, CodingAnswer, CodingGradedDetail, QuestionSafe } from "../types/api";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { FullPageLoader } from "../components/ui/Loader";
 import { cn } from "../lib/utils";
 import { ProctorSummaryCard } from "../components/exam-take/ProctorSummaryCard";
+
+const DIFFICULTY_OPTIONS: { value: string; label: string }[] = [
+  { value: "too_easy", label: "Too easy" },
+  { value: "just_right", label: "Just right" },
+  { value: "too_hard", label: "Too hard" },
+];
+
+function ExamFeedbackCard({ attemptId }: { attemptId: number }) {
+  const queryClient = useQueryClient();
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [difficulty, setDifficulty] = useState<string | null>(null);
+  const [comment, setComment] = useState("");
+
+  const { data: feedback, isLoading } = useQuery({
+    queryKey: ["exam-feedback", attemptId],
+    queryFn: () => fetchExamFeedback(attemptId),
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => submitExamFeedback(attemptId, { rating, difficulty, comment: comment.trim() || null }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["exam-feedback", attemptId] });
+    },
+  });
+
+  if (isLoading) return null;
+
+  if (feedback) {
+    return (
+      <Card className="flex flex-col gap-2">
+        <h2 className="font-display text-base font-semibold text-ink">Thanks for your feedback</h2>
+        <div className="flex items-center gap-1">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <Star
+              key={n}
+              size={18}
+              className={n <= feedback.rating ? "fill-warning text-warning" : "text-black/15"}
+            />
+          ))}
+        </div>
+        {feedback.comment && <p className="text-sm text-ink-muted">"{feedback.comment}"</p>}
+      </Card>
+    );
+  }
+
+  const displayRating = hoverRating || rating;
+
+  return (
+    <Card className="flex flex-col gap-4">
+      <div>
+        <h2 className="font-display text-base font-semibold text-ink">Rate this exam</h2>
+        <p className="mt-1 text-sm text-ink-muted">Help us improve — this doesn't affect your score.</p>
+      </div>
+
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            onMouseEnter={() => setHoverRating(n)}
+            onMouseLeave={() => setHoverRating(0)}
+            onClick={() => setRating(n)}
+            aria-label={`${n} star${n === 1 ? "" : "s"}`}
+          >
+            <Star
+              size={26}
+              className={cn(
+                "transition-colors",
+                n <= displayRating ? "fill-warning text-warning" : "text-black/15",
+              )}
+            />
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {DIFFICULTY_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setDifficulty(opt.value === difficulty ? null : opt.value)}
+            className={cn(
+              "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors",
+              difficulty === opt.value
+                ? "border-accent bg-accent/10 text-ink"
+                : "border-black/10 text-ink-muted hover:bg-black/5",
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Any comments? (optional)"
+        rows={2}
+        className="w-full rounded-xl border border-black/10 bg-base-soft/60 px-4 py-2.5 text-sm text-ink outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/20"
+      />
+
+      <Button
+        onClick={() => mutation.mutate()}
+        disabled={rating === 0}
+        isLoading={mutation.isPending}
+        className="w-fit"
+      >
+        Submit feedback
+      </Button>
+    </Card>
+  );
+}
 
 function describeAnswer(question: QuestionSafe, payload: Record<string, unknown>): string {
   if (!payload || Object.keys(payload).length === 0) return "No answer";
@@ -117,6 +231,8 @@ export function ExamResult() {
       </div>
 
       <ProctorSummaryCard attemptId={attempt.id} />
+
+      <ExamFeedbackCard attemptId={attempt.id} />
 
       <div className="flex items-center gap-2 text-sm text-ink-muted">
         <ListChecks size={15} /> Question breakdown

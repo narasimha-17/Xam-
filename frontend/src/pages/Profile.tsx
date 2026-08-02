@@ -16,13 +16,6 @@ export function Profile() {
   const [nameMessage, setNameMessage] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordSaving, setPasswordSaving] = useState(false);
-  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-
   async function handleNameSubmit(e: FormEvent) {
     e.preventDefault();
     setNameError(null);
@@ -47,37 +40,6 @@ export function Profile() {
       setNameError("Could not update your profile. Try again.");
     } finally {
       setNameSaving(false);
-    }
-  }
-
-  async function handlePasswordSubmit(e: FormEvent) {
-    e.preventDefault();
-    setPasswordError(null);
-    setPasswordMessage(null);
-
-    if (newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters.");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError("New password and confirmation don't match.");
-      return;
-    }
-
-    setPasswordSaving(true);
-    try {
-      await updateProfile({ current_password: currentPassword, new_password: newPassword });
-      setPasswordMessage("Password updated.");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
-        "Could not update your password.";
-      setPasswordError(message);
-    } finally {
-      setPasswordSaving(false);
     }
   }
 
@@ -119,40 +81,6 @@ export function Profile() {
           {nameMessage && <p className="text-sm text-success">{nameMessage}</p>}
           <Button type="submit" isLoading={nameSaving} className="w-fit">
             Save changes
-          </Button>
-        </form>
-      </Card>
-
-      <Card className="flex flex-col gap-4">
-        <h2 className="font-display text-lg font-semibold text-ink">Change password</h2>
-        <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
-          <Input
-            label="Current password"
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            required
-          />
-          <Input
-            label="New password"
-            type="password"
-            minLength={8}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
-          <Input
-            label="Confirm new password"
-            type="password"
-            minLength={8}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-          {passwordError && <p className="text-sm text-danger">{passwordError}</p>}
-          {passwordMessage && <p className="text-sm text-success">{passwordMessage}</p>}
-          <Button type="submit" isLoading={passwordSaving} className="w-fit">
-            Update password
           </Button>
         </form>
       </Card>

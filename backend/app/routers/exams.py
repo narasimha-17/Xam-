@@ -15,6 +15,7 @@ from app.models.exam import (
     Exam,
     ExamAttempt,
     AttemptAnswer,
+    ExamFeedback,
     FillBlankAnswer,
     MatchPair,
     Question,
@@ -34,6 +35,10 @@ from app.schemas.exam import (
     AutosaveIn,
     ExamAdminOut,
     ExamCreate,
+    ExamFeedbackCommentOut,
+    ExamFeedbackIn,
+    ExamFeedbackOut,
+    ExamFeedbackSummaryOut,
     ExamReplace,
     ExamSafeOut,
     ExamSummaryOut,
@@ -591,6 +596,92 @@ async def get_attempt(attempt_id: int, db: AsyncSession = Depends(get_db), user:
             )
 
     return AttemptResultOut(**_attempt_out(attempt).model_dump(), answers=answers_out)
+
+
+@router.get("/attempts/{attempt_id}/feedback", response_model=ExamFeedbackOut | None)
+async def get_exam_feedback(
+    attempt_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+):
+    attempt = await _get_attempt_or_404(attempt_id, db)
+    if attempt.user_id != user.id and user.role != UserRole.admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your attempt")
+
+    feedback = await db.scalar(select(ExamFeedback).where(ExamFeedback.attempt_id == attempt_id))
+    return feedback
+
+
+@router.post(
+    "/attempts/{attempt_id}/feedback", response_model=ExamFeedbackOut, status_code=status.HTTP_201_CREATED
+)
+async def submit_exam_feedback(
+    attempt_id: int,
+    payload: ExamFeedbackIn,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    attempt = await _get_attempt_or_404(attempt_id, db)
+    if attempt.user_id != user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your attempt")
+    if attempt.status != AttemptStatus.submitted:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Submit the exam before leaving feedback")
+
+    existing = await db.scalar(select(ExamFeedback).where(ExamFeedback.attempt_id == attempt_id))
+    if existing is not None:
+        existing.rating = payload.rating
+        existing.difficulty = payload.difficulty
+        existing.comment = payload.comment
+        feedback = existing
+    else:
+        feedback = ExamFeedback(
+            attempt_id=attempt_id,
+            exam_id=attempt.exam_id,
+            user_id=user.id,
+            rating=payload.rating,
+            difficulty=payload.difficulty,
+            comment=payload.comment,
+        )
+        db.add(feedback)
+    await db.commit()
+    await db.refresh(feedback)
+    return feedback
+
+
+@router.get("/{exam_id}/feedback-summary", response_model=ExamFeedbackSummaryOut)
+async def get_exam_feedback_summary(
+    exam_id: int, db: AsyncSession = Depends(get_db), _: User = Depends(require_admin)
+):
+    await _get_exam_or_404(exam_id, db)
+    result = await db.execute(
+        select(ExamFeedback, User.full_name)
+        .join(User, User.id == ExamFeedback.user_id)
+        .where(ExamFeedback.exam_id == exam_id)
+        .order_by(ExamFeedback.created_at.desc())
+    )
+    rows = result.all()
+
+    difficulty_counts: dict[str, int] = {}
+    for feedback, _name in rows:
+        if feedback.difficulty:
+            difficulty_counts[feedback.difficulty] = difficulty_counts.get(feedback.difficulty, 0) + 1
+
+    total = len(rows)
+    average = sum(f.rating for f, _ in rows) / total if total else 0.0
+
+    return ExamFeedbackSummaryOut(
+        total_feedback=total,
+        average_rating=round(average, 2),
+        difficulty_counts=difficulty_counts,
+        comments=[
+            ExamFeedbackCommentOut(
+                rating=feedback.rating,
+                difficulty=feedback.difficulty,
+                comment=feedback.comment,
+                submitted_by=name,
+                created_at=feedback.created_at,
+            )
+            for feedback, name in rows
+        ],
+    )
 
 
 @router.post("/attempts/{attempt_id}/submit", response_model=AttemptResultOut)

@@ -398,6 +398,37 @@ export interface AttemptResult extends ExamAttempt {
   answers: AttemptAnswerResult[];
 }
 
+// ---------- Exam feedback ----------
+
+export interface ExamFeedbackInput {
+  rating: number;
+  difficulty: string | null;
+  comment: string | null;
+}
+
+export interface ExamFeedback {
+  id: number;
+  rating: number;
+  difficulty: string | null;
+  comment: string | null;
+  created_at: string;
+}
+
+export interface ExamFeedbackComment {
+  rating: number;
+  difficulty: string | null;
+  comment: string | null;
+  submitted_by: string;
+  created_at: string;
+}
+
+export interface ExamFeedbackSummary {
+  total_feedback: number;
+  average_rating: number;
+  difficulty_counts: Record<string, number>;
+  comments: ExamFeedbackComment[];
+}
+
 // ---------- Coding: run against sample test cases (ungraded trial run) ----------
 
 export interface RunCodeRequest {
