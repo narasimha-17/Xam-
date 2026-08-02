@@ -24,6 +24,8 @@ import { SubjectDiscussion } from "./pages/SubjectDiscussion";
 import { ThreadDetail } from "./pages/ThreadDetail";
 import { Progress } from "./pages/Progress";
 import { DailyPuzzle } from "./pages/DailyPuzzle";
+import { CodingPractice } from "./pages/CodingPractice";
+import { CodingProblemSolve } from "./pages/CodingProblemSolve";
 import { Profile } from "./pages/Profile";
 import { NotFound } from "./pages/NotFound";
 
@@ -158,6 +160,26 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <DailyPuzzle />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coding"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <CodingPractice />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/coding/:id"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <CodingProblemSolve />
                 </AppShell>
               </ProtectedRoute>
             }

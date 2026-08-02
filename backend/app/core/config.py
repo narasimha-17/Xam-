@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     jdoodle_client_id: str = ""
     jdoodle_client_secret: str = ""
 
+    judge0_url: str = ""
+    judge0_api_key: str = ""
+
     ollama_host: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:14b"
     ai_features_enabled: bool = True

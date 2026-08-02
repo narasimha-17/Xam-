@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import {
   BarChart3,
   BookOpen,
+  Code2,
   Flag,
   LayoutDashboard,
   MessagesSquare,
@@ -20,6 +21,7 @@ import { useAuth } from "../../auth/AuthContext";
 const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/subjects", label: "Subjects", icon: BookOpen },
+  { to: "/coding", label: "Coding practice", icon: Code2 },
   { to: "/progress", label: "Progress", icon: TrendingUp },
   { to: "/puzzle", label: "Daily puzzle", icon: Puzzle },
   { to: "/discussion", label: "Discussion", icon: MessagesSquare },

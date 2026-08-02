@@ -8,6 +8,7 @@ from app.routers import (
     admin,
     ai,
     auth,
+    coding,
     discussions,
     exams,
     notifications,
@@ -43,6 +44,7 @@ app.include_router(users.router)
 app.include_router(notifications.router)
 app.include_router(admin.router)
 app.include_router(puzzles.router)
+app.include_router(coding.router)
 
 
 @app.get("/health")

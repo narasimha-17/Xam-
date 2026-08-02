@@ -614,3 +614,79 @@ export interface PuzzleInput {
   explanation: string | null;
   difficulty: string;
 }
+
+// ---------- Coding practice (standalone, separate from exams) ----------
+
+export interface CodingProblemListItem {
+  id: number;
+  title: string;
+  difficulty: string;
+  tags: string[];
+  languages: CodingLanguage[];
+  is_solved: boolean;
+}
+
+export interface CodingSampleTestCase {
+  id: number;
+  input: string;
+  expected_output: string;
+}
+
+export interface CodingProblemDetail {
+  id: number;
+  title: string;
+  description: string;
+  difficulty: string;
+  tags: string[];
+  languages: CodingLanguage[];
+  starter_code: Partial<Record<CodingLanguage, string>>;
+  sample_test_cases: CodingSampleTestCase[];
+  hidden_test_case_count: number;
+  is_solved: boolean;
+}
+
+export interface CodingRunResult {
+  test_case_results: TestCaseRunResult[];
+  passed_count: number;
+  total_count: number;
+}
+
+export interface CodingSubmitResult {
+  is_solved: boolean;
+  passed_count: number;
+  total_count: number;
+  test_case_results: TestCaseRunResult[];
+}
+
+export interface CodingSubmission {
+  id: number;
+  language: CodingLanguage;
+  passed_count: number;
+  total_count: number;
+  is_solved: boolean;
+  submitted_at: string;
+}
+
+export interface CodingProblemAdmin {
+  id: number;
+  title: string;
+  description: string;
+  difficulty: string;
+  tags: string[];
+  languages: CodingLanguage[];
+  starter_code: Partial<Record<CodingLanguage, string>>;
+  is_published: boolean;
+  created_at: string;
+  test_cases: { id: number; input: string; expected_output: string; is_sample: boolean }[];
+}
+
+export interface CodingProblemInput {
+  title: string;
+  description: string;
+  difficulty: string;
+  tags: string[];
+  languages: CodingLanguage[];
+  starter_code: Partial<Record<CodingLanguage, string>>;
+  is_published: boolean;
+  test_cases: { input: string; expected_output: string; is_sample: boolean }[];
+}

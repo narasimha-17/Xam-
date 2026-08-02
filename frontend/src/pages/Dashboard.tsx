@@ -9,6 +9,7 @@ import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Loader } from "../components/ui/Loader";
 import { QuoteBanner } from "../components/ui/QuoteBanner";
+import { PlatformDashboard } from "./admin/PlatformDashboard";
 
 function greeting() {
   const hour = new Date().getHours();
@@ -26,6 +27,14 @@ const TILE_ICON_STYLES = [
 ];
 
 export function Dashboard() {
+  const { user } = useAuth();
+  if (user?.role === "admin") {
+    return <PlatformDashboard />;
+  }
+  return <StudentDashboard />;
+}
+
+function StudentDashboard() {
   const { user } = useAuth();
 
   const { data: subjects, isLoading: subjectsLoading } = useQuery({
