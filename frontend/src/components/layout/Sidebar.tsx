@@ -7,6 +7,7 @@ import {
   MessagesSquare,
   PanelLeftClose,
   PanelLeftOpen,
+  Puzzle,
   TrendingUp,
   UserCog,
   Users,
@@ -20,6 +21,7 @@ const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/subjects", label: "Subjects", icon: BookOpen },
   { to: "/progress", label: "Progress", icon: TrendingUp },
+  { to: "/puzzle", label: "Daily puzzle", icon: Puzzle },
   { to: "/discussion", label: "Discussion", icon: MessagesSquare },
 ];
 

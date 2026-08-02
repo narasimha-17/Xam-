@@ -23,6 +23,7 @@ import { Discussion } from "./pages/Discussion";
 import { SubjectDiscussion } from "./pages/SubjectDiscussion";
 import { ThreadDetail } from "./pages/ThreadDetail";
 import { Progress } from "./pages/Progress";
+import { DailyPuzzle } from "./pages/DailyPuzzle";
 import { Profile } from "./pages/Profile";
 import { NotFound } from "./pages/NotFound";
 
@@ -147,6 +148,16 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <Progress />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/puzzle"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <DailyPuzzle />
                 </AppShell>
               </ProtectedRoute>
             }

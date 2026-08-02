@@ -566,3 +566,51 @@ export interface PlatformStats {
   open_question_reports: number;
   most_reported_questions: ReportedQuestionStat[];
 }
+
+// ---------- Daily puzzles ----------
+
+export interface PuzzleToday {
+  id: number;
+  question_text: string;
+  options: string[];
+  difficulty: string;
+  already_solved: boolean;
+  selected_index: number | null;
+  correct_index: number | null;
+  is_correct: boolean | null;
+  explanation: string | null;
+}
+
+export interface PuzzleAttemptResult {
+  is_correct: boolean;
+  correct_index: number;
+  explanation: string | null;
+  current_streak: number;
+  longest_streak: number;
+}
+
+export interface PuzzleStreak {
+  current_streak: number;
+  longest_streak: number;
+  total_solved: number;
+  total_correct: number;
+}
+
+export interface PuzzleAdmin {
+  id: number;
+  question_text: string;
+  options: string[];
+  correct_index: number;
+  explanation: string | null;
+  difficulty: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface PuzzleInput {
+  question_text: string;
+  options: string[];
+  correct_index: number;
+  explanation: string | null;
+  difficulty: string;
+}

@@ -14,6 +14,7 @@ from app.models.exam import (
 from app.models.discussion import DiscussionThread, DiscussionPost
 from app.models.proctoring import ProctorEvent, ProctorEventType
 from app.models.system import PasswordResetToken, AdminActivityLog, Notification
+from app.models.puzzle import Puzzle, PuzzleAttempt
 
 __all__ = [
     "User",
@@ -35,4 +36,6 @@ __all__ = [
     "PasswordResetToken",
     "AdminActivityLog",
     "Notification",
+    "Puzzle",
+    "PuzzleAttempt",
 ]

@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, MessagesSquare, Target, TrendingUp } from "lucide-react";
+import { ArrowRight, BookOpen, Flame, MessagesSquare, Puzzle, Target, TrendingUp } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { fetchSubjects } from "../lib/subjects";
 import { fetchMyProgress } from "../lib/progress";
+import { fetchPuzzleStreak, fetchTodayPuzzle } from "../lib/puzzles";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Loader } from "../components/ui/Loader";
@@ -34,6 +35,14 @@ export function Dashboard() {
   const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: ["progress"],
     queryFn: fetchMyProgress,
+  });
+  const { data: todayPuzzle } = useQuery({
+    queryKey: ["puzzle-today"],
+    queryFn: fetchTodayPuzzle,
+  });
+  const { data: puzzleStreak } = useQuery({
+    queryKey: ["puzzle-streak"],
+    queryFn: fetchPuzzleStreak,
   });
 
   const isLoading = subjectsLoading || progressLoading;
@@ -83,6 +92,37 @@ export function Dashboard() {
         <Link to="/subjects">
           <Button>Browse subjects</Button>
         </Link>
+      </Card>
+
+      <Card className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning">
+            <Puzzle size={20} strokeWidth={1.75} />
+          </div>
+          <div>
+            <h2 className="font-display text-lg font-semibold text-ink">
+              {todayPuzzle?.already_solved ? "Today's puzzle is done" : "Today's brain teaser"}
+            </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              {todayPuzzle?.already_solved
+                ? "Nice work — come back tomorrow for a new one."
+                : "A quick logic puzzle to sharpen your thinking, no grade attached."}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-4">
+          {puzzleStreak && puzzleStreak.current_streak > 0 && (
+            <div className="flex items-center gap-1.5 text-sm text-ink-muted">
+              <Flame size={16} className="text-warning" />
+              <span className="font-medium text-ink">{puzzleStreak.current_streak}</span> day streak
+            </div>
+          )}
+          <Link to="/puzzle">
+            <Button variant={todayPuzzle?.already_solved ? "outline" : "primary"}>
+              {todayPuzzle?.already_solved ? "View result" : "Solve it"}
+            </Button>
+          </Link>
+        </div>
       </Card>
 
       {!isLoading && subjects && subjects.length > 0 && (
