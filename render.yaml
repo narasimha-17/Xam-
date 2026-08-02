@@ -13,10 +13,6 @@ services:
     dockerCommand: sh entrypoint.sh
     plan: free
     healthCheckPath: /health
-    disk:
-      name: xamplus-uploads
-      mountPath: /app/uploads
-      sizeGB: 1
     envVars:
       - key: DATABASE_URL
         fromDatabase:

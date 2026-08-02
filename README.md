@@ -66,8 +66,10 @@ site). It runs Alembic migrations and seeds the admin user automatically on ever
 - **Coding-question execution** (JDoodle) needs real `JDOODLE_CLIENT_ID` /
   `JDOODLE_CLIENT_SECRET` values — left blank by default, so "Run code" will fail on the deployed
   instance until you add credentials from [jdoodle.com](https://www.jdoodle.com/compiler-api).
-- **Uploaded PDFs** live on a 1GB persistent disk attached to the backend service — fine for a
-  demo, but not redundant/backed-up storage.
+- **Uploaded PDFs don't persist** on Render's free tier — the backend's filesystem is ephemeral, so
+  files uploaded to the PDF library are wiped on every restart/redeploy. Free tier doesn't support
+  persistent disks at all; upgrading the backend service to a paid plan and adding a `disk:` block
+  back to `render.yaml` fixes this if you need PDFs to survive.
 
 ### First push
 This project directory has its own git history, separate from anything else on your machine:
