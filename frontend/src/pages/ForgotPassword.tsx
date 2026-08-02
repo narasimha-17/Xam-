@@ -17,14 +17,21 @@ export function ForgotPassword() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSendOtp(e: FormEvent) {
     e.preventDefault();
+    setSendError(null);
     setIsLoading(true);
     try {
       await forgotPassword(email);
       setStep("otp");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        "Something went wrong. Please try again.";
+      setSendError(message);
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +89,7 @@ export function ForgotPassword() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+              {sendError && <p className="text-sm text-danger">{sendError}</p>}
               <Button type="submit" isLoading={isLoading} className="mt-2 w-full">
                 Send code
               </Button>

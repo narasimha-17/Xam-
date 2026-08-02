@@ -42,12 +42,8 @@ class Settings(BaseSettings):
     judge0_url: str = ""
     judge0_api_key: str = ""
 
-    smtp_host: str = ""
-    smtp_port: int = 587
-    smtp_username: str = ""
-    smtp_password: str = ""
-    smtp_from_email: str = ""
-    smtp_use_tls: bool = True
+    brevo_api_key: str = ""
+    email_from_address: str = ""
 
     ollama_host: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:14b"

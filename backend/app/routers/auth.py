@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user
@@ -19,6 +19,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger("app.auth")
 
 RESET_TOKEN_TTL = timedelta(hours=1)
+RESET_OTP_DAILY_LIMIT = 3
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_201_CREATED)
@@ -96,6 +97,18 @@ async def forgot_password(payload: ForgotPasswordIn, db: AsyncSession = Depends(
     user = await db.scalar(select(User).where(User.email == payload.email))
     if user is None or not user.is_active:
         return generic_response
+
+    since = datetime.now(timezone.utc) - timedelta(hours=24)
+    recent_count = await db.scalar(
+        select(func.count())
+        .select_from(PasswordResetToken)
+        .where(PasswordResetToken.user_id == user.id, PasswordResetToken.created_at >= since)
+    )
+    if recent_count >= RESET_OTP_DAILY_LIMIT:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="You've reached the limit of 3 reset codes per day. Please wait 24 hours and try again.",
+        )
 
     otp = f"{secrets.randbelow(1_000_000):06d}"
     db.add(
