@@ -759,3 +759,40 @@ export interface CodingProblemInput {
   is_published: boolean;
   test_cases: { input: string; expected_output: string; is_sample: boolean }[];
 }
+
+// ---------- Off-campus jobs ----------
+
+export type JobType = "full_time" | "internship" | "part_time";
+
+export interface JobPosting {
+  id: number;
+  title: string;
+  company_name: string;
+  job_type: string;
+  location: string | null;
+  is_remote: boolean;
+  description: string;
+  min_qualification: string | null;
+  package: string | null;
+  application_link: string | null;
+  application_deadline: string | null;
+  created_at: string;
+}
+
+export interface JobPostingAdmin extends JobPosting {
+  is_active: boolean;
+}
+
+export interface JobPostingInput {
+  title: string;
+  company_name: string;
+  job_type: string;
+  location: string | null;
+  is_remote: boolean;
+  description: string;
+  min_qualification: string | null;
+  package: string | null;
+  application_link: string | null;
+  application_deadline: string | null;
+  is_active: boolean;
+}

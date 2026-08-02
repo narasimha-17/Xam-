@@ -17,6 +17,7 @@ from app.models.proctoring import ProctorEvent, ProctorEventType
 from app.models.system import PasswordResetToken, AdminActivityLog, Notification
 from app.models.puzzle import Puzzle, PuzzleAttempt
 from app.models.coding import CodingProblem, CodingTestCase, CodingSubmission
+from app.models.job import JobPosting
 
 __all__ = [
     "User",
@@ -44,4 +45,5 @@ __all__ = [
     "CodingProblem",
     "CodingTestCase",
     "CodingSubmission",
+    "JobPosting",
 ]
