@@ -7,10 +7,10 @@ databases:
 services:
   - type: web
     name: xamplus-backend
-    runtime: docker
-    dockerContext: ./backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerCommand: sh entrypoint.sh
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: sh entrypoint.sh
     plan: free
     healthCheckPath: /health
     envVars:

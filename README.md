@@ -41,7 +41,8 @@ Set in `backend/.env` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`), created by `
 ## Deploying (Render)
 
 This repo includes a `render.yaml` blueprint that provisions everything: a managed Postgres
-database, the FastAPI backend (as a Docker web service), and the React frontend (as a static
+database, the FastAPI backend (as a native Python web service — no Docker, so no payment
+verification required), and the React frontend (as a static
 site). It runs Alembic migrations and seeds the admin user automatically on every deploy.
 
 1. **Push this repo to GitHub** (see "First push" below if you haven't already).
