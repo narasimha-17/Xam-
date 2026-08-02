@@ -26,6 +26,7 @@ import { Progress } from "./pages/Progress";
 import { DailyPuzzle } from "./pages/DailyPuzzle";
 import { CodingPractice } from "./pages/CodingPractice";
 import { CodingProblemSolve } from "./pages/CodingProblemSolve";
+import { MockInterview } from "./pages/MockInterview";
 import { Profile } from "./pages/Profile";
 import { NotFound } from "./pages/NotFound";
 
@@ -190,6 +191,16 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <CodingProblemSolve />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mock-interview"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <MockInterview />
                 </AppShell>
               </ProtectedRoute>
             }

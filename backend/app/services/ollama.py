@@ -267,6 +267,145 @@ shape:
     return await _run_explain_prompt(prompt)
 
 
+INTERVIEW_QUESTION_SCHEMA = """{
+  "question": "string, a single interview question"
+}"""
+
+INTERVIEW_FEEDBACK_SCHEMA = """{
+  "overall_feedback": "string, 2-4 sentences summarizing the candidate's performance",
+  "strengths": ["string", "string"],
+  "improvements": ["string", "string"],
+  "score": 7
+}
+Rules: score is an integer from 1 to 10, strengths/improvements each have 2-4 short, specific bullet points."""
+
+
+def _format_history(history: list[dict]) -> str:
+    if not history:
+        return "(no questions asked yet — this is the first question)"
+    return "\n\n".join(
+        f"Q{i + 1}: {qa['question']}\nCandidate's answer: {qa['answer']}" for i, qa in enumerate(history)
+    )
+
+
+class InterviewQuestionOutcome(TypedDict):
+    question: str | None
+    error: str | None
+
+
+async def generate_interview_question(job_role: str, history: list[dict]) -> InterviewQuestionOutcome:
+    """Asks the local Ollama model for the next mock-interview question, given the role and prior Q&A."""
+    prompt = f"""You are an experienced technical interviewer conducting a mock job interview for the role of
+"{job_role}".
+
+Conversation so far:
+{_format_history(history)}
+
+Ask ONE good next interview question for this role. Don't repeat a question already asked. Mix
+technical/role-specific questions with occasional behavioral ones. Keep it concise (1-3 sentences).
+
+Respond with ONLY a single JSON object, no markdown code fences, no commentary, matching this exact
+shape:
+{INTERVIEW_QUESTION_SCHEMA}
+"""
+    try:
+        async with httpx.AsyncClient(timeout=3600.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_host}/api/generate",
+                json={
+                    "model": settings.ollama_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.8},
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.ConnectError:
+        return {"question": None, "error": "Could not reach Ollama — is `ollama serve` running?"}
+    except httpx.HTTPStatusError as exc:
+        try:
+            detail = exc.response.json().get("error", exc.response.text)
+        except Exception:
+            detail = exc.response.text
+        return {"question": None, "error": f"Ollama request failed: {detail}"}
+    except httpx.HTTPError as exc:
+        return {"question": None, "error": f"Ollama request failed: {exc}"}
+    except Exception as exc:
+        return {"question": None, "error": f"Unexpected error calling Ollama: {exc}"}
+
+    raw = data.get("response", "")
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"question": None, "error": "Model did not return valid JSON. Try again."}
+
+    question = parsed.get("question") if isinstance(parsed, dict) else None
+    if not isinstance(question, str) or not question.strip():
+        return {"question": None, "error": "Model response was JSON but missing a 'question' field."}
+
+    return {"question": question.strip(), "error": None}
+
+
+class InterviewFeedbackOutcome(TypedDict):
+    data: dict | None
+    error: str | None
+
+
+async def generate_interview_feedback(job_role: str, history: list[dict]) -> InterviewFeedbackOutcome:
+    """Asks the local Ollama model to evaluate a completed mock interview transcript."""
+    prompt = f"""You are an experienced technical interviewer who just finished a mock interview for the role of
+"{job_role}".
+
+Full transcript:
+{_format_history(history)}
+
+Give the candidate constructive, encouraging feedback on their overall performance across all answers.
+
+Respond with ONLY a single JSON object, no markdown code fences, no commentary, matching this exact
+shape:
+{INTERVIEW_FEEDBACK_SCHEMA}
+"""
+    try:
+        async with httpx.AsyncClient(timeout=3600.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_host}/api/generate",
+                json={
+                    "model": settings.ollama_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.6},
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.ConnectError:
+        return {"data": None, "error": "Could not reach Ollama — is `ollama serve` running?"}
+    except httpx.HTTPStatusError as exc:
+        try:
+            detail = exc.response.json().get("error", exc.response.text)
+        except Exception:
+            detail = exc.response.text
+        return {"data": None, "error": f"Ollama request failed: {detail}"}
+    except httpx.HTTPError as exc:
+        return {"data": None, "error": f"Ollama request failed: {exc}"}
+    except Exception as exc:
+        return {"data": None, "error": f"Unexpected error calling Ollama: {exc}"}
+
+    raw = data.get("response", "")
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"data": None, "error": "Model did not return valid JSON. Try again."}
+
+    if not isinstance(parsed, dict) or not parsed.get("overall_feedback"):
+        return {"data": None, "error": "Model response was JSON but missing expected fields."}
+
+    return {"data": parsed, "error": None}
+
+
 async def explain_pdf(subject_name: str, title: str, excerpt: str) -> ExplainOutcome:
     """Asks the local Ollama model to explain a PDF's content as a story, with examples and related topics."""
     prompt = f"""You are a friendly, encouraging tutor helping an engineering student understand a piece of

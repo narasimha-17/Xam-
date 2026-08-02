@@ -10,7 +10,17 @@ from app.db.session import get_db
 from app.models.pdf import Pdf
 from app.models.subject import Subject
 from app.models.user import User
-from app.schemas.ai import ExplainExample, ExplainOut, PdfExplainIn, RelatedLink, TopicExplainIn
+from app.schemas.ai import (
+    ExplainExample,
+    ExplainOut,
+    InterviewFeedbackIn,
+    InterviewFeedbackOut,
+    InterviewQuestionIn,
+    InterviewQuestionOut,
+    PdfExplainIn,
+    RelatedLink,
+    TopicExplainIn,
+)
 from app.services import ollama
 from app.services.pdf_text import extract_pdf_excerpt
 
@@ -108,3 +118,50 @@ async def explain_pdf_endpoint(
             detail="Xipe is busy with another request right now. Try again shortly.",
         )
     return _to_out(outcome)
+
+
+@router.post("/mock-interview/question", response_model=InterviewQuestionOut)
+async def mock_interview_question(payload: InterviewQuestionIn, _: User = Depends(get_current_user)):
+    _require_ai_enabled()
+    if not payload.job_role.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Enter a job role to interview for")
+
+    try:
+        async with ollama.ollama_slot():
+            outcome = await ollama.generate_interview_question(
+                payload.job_role.strip(), [qa.model_dump() for qa in payload.history]
+            )
+    except ollama.OllamaBusy:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Xipe is busy with another request right now. Try again shortly.",
+        )
+    return InterviewQuestionOut(question=outcome["question"], error=outcome["error"])
+
+
+@router.post("/mock-interview/feedback", response_model=InterviewFeedbackOut)
+async def mock_interview_feedback(payload: InterviewFeedbackIn, _: User = Depends(get_current_user)):
+    _require_ai_enabled()
+    if not payload.history:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No interview answers to evaluate")
+
+    try:
+        async with ollama.ollama_slot():
+            outcome = await ollama.generate_interview_feedback(
+                payload.job_role.strip(), [qa.model_dump() for qa in payload.history]
+            )
+    except ollama.OllamaBusy:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Xipe is busy with another request right now. Try again shortly.",
+        )
+    if outcome["error"] or not outcome["data"]:
+        return InterviewFeedbackOut(error=outcome["error"] or "No feedback was generated.")
+    data = outcome["data"]
+    return InterviewFeedbackOut(
+        overall_feedback=str(data.get("overall_feedback", "")),
+        strengths=[str(s) for s in data.get("strengths", []) if isinstance(s, (str, int, float))],
+        improvements=[str(s) for s in data.get("improvements", []) if isinstance(s, (str, int, float))],
+        score=int(data.get("score", 0)) if isinstance(data.get("score"), (int, float)) else 0,
+        error=None,
+    )

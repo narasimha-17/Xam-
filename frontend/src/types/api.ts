@@ -235,6 +235,36 @@ export interface ExplainResult {
   error: string | null;
 }
 
+// ---------- AI mock interview ----------
+
+export interface InterviewQAPair {
+  question: string;
+  answer: string;
+}
+
+export interface InterviewQuestionInput {
+  job_role: string;
+  history: InterviewQAPair[];
+}
+
+export interface InterviewQuestionResult {
+  question: string | null;
+  error: string | null;
+}
+
+export interface InterviewFeedbackInput {
+  job_role: string;
+  history: InterviewQAPair[];
+}
+
+export interface InterviewFeedbackResult {
+  overall_feedback: string;
+  strengths: string[];
+  improvements: string[];
+  score: number;
+  error: string | null;
+}
+
 export interface QuestionReportAdmin extends QuestionReportResult {
   question_text: string;
   exam_title: string;
