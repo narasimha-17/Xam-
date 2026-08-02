@@ -34,7 +34,7 @@ export function ReportQuestionModal({
       reportQuestion(questionId, {
         reason,
         comment: comment.trim() || null,
-        submitted_answer: (answer as Record<string, unknown>) ?? null,
+        submitted_answer: (answer as unknown as Record<string, unknown>) ?? null,
       }),
   });
 
