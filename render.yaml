@@ -1,0 +1,63 @@
+databases:
+  - name: xamplus-db
+    databaseName: xamplus
+    user: xamplus
+    plan: free
+
+services:
+  - type: web
+    name: xamplus-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    dockerCommand: sh entrypoint.sh
+    plan: free
+    healthCheckPath: /health
+    disk:
+      name: xamplus-uploads
+      mountPath: /app/uploads
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: xamplus-db
+          property: connectionString
+      - key: SYNC_DATABASE_URL
+        fromDatabase:
+          name: xamplus-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"
+      - key: UPLOAD_DIR
+        value: uploads/pdfs
+      - key: SEED_ADMIN_EMAIL
+        value: admin@example.com
+      - key: SEED_ADMIN_PASSWORD
+        generateValue: true
+      - key: SEED_ADMIN_NAME
+        value: Admin
+      - key: AI_FEATURES_ENABLED
+        value: "false"
+      # Set these two after the first deploy, once you know both services' URLs
+      # (see the "Deploying" section in README.md) — Render can't know either
+      # service's public URL until it exists.
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  - type: web
+    name: xamplus-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      # Set this to the backend service's URL after the first deploy (see README.md).
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

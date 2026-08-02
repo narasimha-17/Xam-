@@ -1,0 +1,102 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Users } from "lucide-react";
+import { fetchAllStudentsProgress } from "../../lib/progress";
+import { Card } from "../../components/ui/Card";
+import { Loader } from "../../components/ui/Loader";
+import { SearchInput } from "../../components/ui/SearchInput";
+
+function scoreColor(pct: number) {
+  if (pct >= 75) return "text-success";
+  if (pct >= 50) return "text-warning";
+  return "text-danger";
+}
+
+export function StudentsProgress() {
+  const [search, setSearch] = useState("");
+  const { data: students, isLoading } = useQuery({
+    queryKey: ["all-students-progress"],
+    queryFn: fetchAllStudentsProgress,
+  });
+
+  if (isLoading) return <Loader className="py-24" label="Loading students..." />;
+
+  const filtered = (students ?? []).filter((s) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return s.full_name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q);
+  });
+
+  const attempted = filtered.filter((s) => s.total_attempts > 0);
+  const overallAvg = attempted.length
+    ? Math.round((attempted.reduce((sum, s) => sum + s.average_score_pct, 0) / attempted.length) * 10) / 10
+    : 0;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="font-display text-2xl font-semibold text-ink">Student progress</h1>
+        <p className="mt-1 text-sm text-ink-muted">Every student's attempts and average score.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <Card className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent-soft">
+            <Users size={18} />
+          </div>
+          <div>
+            <p className="font-display text-2xl font-semibold text-ink">{students?.length ?? 0}</p>
+            <p className="text-xs text-ink-muted">Total students</p>
+          </div>
+        </Card>
+        <Card>
+          <p className="font-display text-2xl font-semibold text-ink">{attempted.length}</p>
+          <p className="text-xs text-ink-muted">Have attempted an exam</p>
+        </Card>
+        <Card>
+          <p className="font-display text-2xl font-semibold text-ink">{overallAvg}%</p>
+          <p className="text-xs text-ink-muted">Average score (active students)</p>
+        </Card>
+      </div>
+
+      <SearchInput value={search} onChange={setSearch} placeholder="Search by name or email..." className="max-w-sm" />
+
+      <Card className="overflow-x-auto p-0">
+        <table className="w-full min-w-[600px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-black/10 text-xs uppercase tracking-wide text-ink-faint">
+              <th className="px-5 py-3 font-medium">Student</th>
+              <th className="px-5 py-3 font-medium">Attempts</th>
+              <th className="px-5 py-3 font-medium">Average score</th>
+              <th className="px-5 py-3 font-medium">Last attempt</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((s) => (
+              <tr key={s.user_id} className="border-b border-black/5 last:border-0">
+                <td className="px-5 py-3">
+                  <p className="font-medium text-ink">{s.full_name}</p>
+                  <p className="text-xs text-ink-faint">{s.email}</p>
+                </td>
+                <td className="px-5 py-3 text-ink">{s.total_attempts}</td>
+                <td className={`px-5 py-3 font-medium ${s.total_attempts ? scoreColor(s.average_score_pct) : "text-ink-faint"}`}>
+                  {s.total_attempts ? `${s.average_score_pct}%` : "—"}
+                </td>
+                <td className="px-5 py-3 text-ink-muted">
+                  {s.last_attempt_at ? new Date(s.last_attempt_at).toLocaleDateString() : "Never"}
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-5 py-10 text-center text-ink-muted">
+                  No students match your search.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </Card>
+    </div>
+  );
+}
