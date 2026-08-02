@@ -73,5 +73,6 @@ class ForgotPasswordIn(BaseModel):
 
 
 class ResetPasswordIn(BaseModel):
-    token: str
+    email: EmailStr
+    otp: str
     new_password: str

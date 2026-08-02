@@ -7,13 +7,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.core.deps import get_current_user
 from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_db
 from app.models.system import PasswordResetToken
 from app.models.user import User, UserRole
 from app.schemas.user import ForgotPasswordIn, ResetPasswordIn, Token, UserOut, UserRegister, UserUpdate
+from app.services.email import send_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger("app.auth")
@@ -91,30 +91,36 @@ async def update_me(
 
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)
 async def forgot_password(payload: ForgotPasswordIn, db: AsyncSession = Depends(get_db)):
-    generic_response = {"detail": "If that email is registered, a reset link has been sent."}
+    generic_response = {"detail": "If that email is registered, a code has been sent."}
 
     user = await db.scalar(select(User).where(User.email == payload.email))
     if user is None or not user.is_active:
         return generic_response
 
-    token = secrets.token_urlsafe(32)
+    otp = f"{secrets.randbelow(1_000_000):06d}"
     db.add(
         PasswordResetToken(
             user_id=user.id,
-            token=token,
+            token=otp,
             expires_at=datetime.now(timezone.utc) + RESET_TOKEN_TTL,
         )
     )
     await db.commit()
 
-    reset_link = f"{settings.frontend_url}/reset-password?token={token}"
-    logger.warning(
-        "[DEV] Password reset requested for %s. No email service is configured, so here's the link:\n  %s\n"
-        "  (expires in %s)",
+    sent = await send_email(
         user.email,
-        reset_link,
-        RESET_TOKEN_TTL,
+        "Your Xam+ password reset code",
+        f"Your password reset code is {otp}\n\nIt expires in {int(RESET_TOKEN_TTL.total_seconds() // 60)} minutes. "
+        "If you didn't request this, you can safely ignore this email.",
     )
+    if not sent:
+        logger.warning(
+            "[DEV] Password reset requested for %s. No email service is configured, so here's the code: %s "
+            "(expires in %s)",
+            user.email,
+            otp,
+            RESET_TOKEN_TTL,
+        )
     return generic_response
 
 
@@ -123,18 +129,24 @@ async def reset_password(payload: ResetPasswordIn, db: AsyncSession = Depends(ge
     if len(payload.new_password) < 8:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Password must be at least 8 characters")
 
-    reset_token = await db.scalar(select(PasswordResetToken).where(PasswordResetToken.token == payload.token))
-    now = datetime.now(timezone.utc)
-    if (
-        reset_token is None
-        or reset_token.used_at is not None
-        or reset_token.expires_at < now
-    ):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This reset link is invalid or has expired")
-
-    user = await db.get(User, reset_token.user_id)
+    user = await db.scalar(select(User).where(User.email == payload.email))
+    invalid = HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="That code is invalid or has expired")
     if user is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="This reset link is invalid or has expired")
+        raise invalid
+
+    now = datetime.now(timezone.utc)
+    reset_token = await db.scalar(
+        select(PasswordResetToken)
+        .where(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.token == payload.otp,
+            PasswordResetToken.used_at.is_(None),
+            PasswordResetToken.expires_at >= now,
+        )
+        .order_by(PasswordResetToken.created_at.desc())
+    )
+    if reset_token is None:
+        raise invalid
 
     user.hashed_password = hash_password(payload.new_password)
     reset_token.used_at = now

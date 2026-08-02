@@ -502,11 +502,6 @@ export interface ForgotPasswordInput {
   email: string;
 }
 
-export interface ResetPasswordInput {
-  token: string;
-  new_password: string;
-}
-
 // ---------- Discussion: moderation ----------
 
 export interface ThreadLockUpdateInput {

@@ -11,9 +11,10 @@ export function DailyPuzzle() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<number | null>(null);
 
-  const { data: puzzle, isLoading } = useQuery({
+  const { data: puzzle, isLoading, isError } = useQuery({
     queryKey: ["puzzle-today"],
     queryFn: fetchTodayPuzzle,
+    retry: false,
   });
   const { data: streak } = useQuery({
     queryKey: ["puzzle-streak"],
@@ -28,8 +29,24 @@ export function DailyPuzzle() {
     },
   });
 
-  if (isLoading || !puzzle) {
+  if (isLoading) {
     return <FullPageLoader label="Loading today's puzzle..." />;
+  }
+
+  if (isError || !puzzle) {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <Card className="flex flex-col items-center gap-3 py-16 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent-soft">
+            <PuzzleIcon size={22} />
+          </div>
+          <h3 className="font-display text-lg font-semibold text-ink">No puzzle available yet</h3>
+          <p className="max-w-xs text-sm text-ink-muted">
+            Check back soon — a new puzzle is added regularly.
+          </p>
+        </Card>
+      </div>
+    );
   }
 
   const solved = puzzle.already_solved;
