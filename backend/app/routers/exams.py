@@ -207,7 +207,7 @@ async def generate_questions_endpoint(
     if not settings.ai_features_enabled:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="AI features are not available in this environment.",
+            detail="Xipe isn't available in this environment.",
         )
     subject = await db.get(Subject, payload.subject_id)
     if subject is None:
@@ -220,7 +220,7 @@ async def generate_questions_endpoint(
     except ollama.OllamaBusy:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="The AI model is busy with another request right now. Try again shortly.",
+            detail="Xipe is busy with another request right now. Try again shortly.",
         )
     if outcome["error"]:
         return GenerateQuestionsOut(questions=[], generated_count=0, rejected_count=0, error=outcome["error"])

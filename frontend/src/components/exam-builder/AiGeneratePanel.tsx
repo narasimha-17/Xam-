@@ -55,7 +55,7 @@ export function AiGeneratePanel({
           <Sparkles size={16} />
         </div>
         <div>
-          <h2 className="font-display text-base font-semibold text-ink">Generate with AI</h2>
+          <h2 className="font-display text-base font-semibold text-ink">Generate with Xipe</h2>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-faint">
             <Clock3 size={12} /> Coming soon in this environment
           </p>
@@ -71,8 +71,8 @@ export function AiGeneratePanel({
           <Sparkles size={16} />
         </div>
         <div>
-          <h2 className="font-display text-base font-semibold text-ink">Generate with AI</h2>
-          <p className="text-xs text-ink-muted">Drafts questions with your local Ollama model — review and edit before saving.</p>
+          <h2 className="font-display text-base font-semibold text-ink">Generate with Xipe</h2>
+          <p className="text-xs text-ink-muted">Xipe drafts questions using your local model — review and edit before saving.</p>
         </div>
       </div>
 
@@ -113,11 +113,11 @@ export function AiGeneratePanel({
 
       {mutation.isPending && (
         <p className="text-sm text-ink-muted">
-          Asking the local model — on CPU this can take several minutes, especially for more questions or coding
+          Asking Xipe — on CPU this can take several minutes, especially for more questions or coding
           type. Feel free to keep working; this panel will update when it's done.
         </p>
       )}
-      {mutation.isError && <p className="text-sm text-danger">Could not reach the generation service. Try again.</p>}
+      {mutation.isError && <p className="text-sm text-danger">Could not reach Xipe. Try again.</p>}
       {warning && <p className="text-sm text-warning">{warning}</p>}
       {mutation.isSuccess && !mutation.isPending && mutation.data.questions.length > 0 && (
         <p className="text-sm text-success">

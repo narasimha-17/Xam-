@@ -21,7 +21,7 @@ def _require_ai_enabled() -> None:
     if not settings.ai_features_enabled:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="AI features are not available in this environment.",
+            detail="Xipe isn't available in this environment.",
         )
 
 
@@ -75,7 +75,7 @@ async def explain_topic_endpoint(
     except ollama.OllamaBusy:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="The AI model is busy with another request right now. Try again shortly.",
+            detail="Xipe is busy with another request right now. Try again shortly.",
         )
     return _to_out(outcome)
 
@@ -105,6 +105,6 @@ async def explain_pdf_endpoint(
     except ollama.OllamaBusy:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="The AI model is busy with another request right now. Try again shortly.",
+            detail="Xipe is busy with another request right now. Try again shortly.",
         )
     return _to_out(outcome)

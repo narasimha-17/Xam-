@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { ExternalLink, Lightbulb, Sparkles } from "lucide-react";
-import { explainPdf, explainTopic } from "../../lib/ai";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Clock3, ExternalLink, Lightbulb, Sparkles } from "lucide-react";
+import { explainPdf, explainTopic, fetchAiStatus } from "../../lib/ai";
 import type { ExplainResult } from "../../types/api";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
@@ -60,6 +60,13 @@ function ExplainResultView({ result }: { result: ExplainResult }) {
 export function AiExplainModal({ open, onClose, source }: { open: boolean; onClose: () => void; source: Source }) {
   const [topic, setTopic] = useState("");
 
+  const { data: aiStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ["ai-status"],
+    queryFn: fetchAiStatus,
+    staleTime: 5 * 60_000,
+    enabled: open,
+  });
+
   const mutation = useMutation({
     mutationFn: () =>
       source.kind === "topic" ? explainTopic({ subject_id: source.subjectId, topic }) : explainPdf({ pdf_id: source.pdfId }),
@@ -71,7 +78,26 @@ export function AiExplainModal({ open, onClose, source }: { open: boolean; onClo
     onClose();
   }
 
-  const title = source.kind === "topic" ? "AI topic explainer" : `Explain "${source.pdfTitle}"`;
+  const title = source.kind === "topic" ? "Xipe topic explainer" : `Explain "${source.pdfTitle}"`;
+
+  if (!statusLoading && aiStatus?.enabled === false) {
+    return (
+      <Modal open={open} onClose={handleClose} title={title} className="max-w-lg">
+        <div className="flex flex-col items-center gap-3 py-6 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent-soft">
+            <Clock3 size={22} />
+          </div>
+          <h3 className="font-display text-lg font-semibold text-ink">Coming soon</h3>
+          <p className="max-w-xs text-sm text-ink-muted">
+            Xipe isn't available in this environment yet — it's on the way in a future release.
+          </p>
+          <Button variant="outline" onClick={handleClose} className="mt-2">
+            Close
+          </Button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal open={open} onClose={handleClose} title={title} className="max-w-lg">
@@ -87,16 +113,16 @@ export function AiExplainModal({ open, onClose, source }: { open: boolean; onClo
 
         {!mutation.data && (
           <p className="text-xs text-ink-faint">
-            Uses your local Ollama model — on CPU this can take a few minutes. Feel free to keep the modal open.
+            Xipe runs on your local model — on CPU this can take a few minutes. Feel free to keep the modal open.
           </p>
         )}
 
         {mutation.isPending && (
-          <p className="text-sm text-ink-muted">Thinking this through and writing it up…</p>
+          <p className="text-sm text-ink-muted">Xipe is thinking this through and writing it up…</p>
         )}
 
         {mutation.isError && (
-          <p className="text-sm text-danger">Could not reach the AI service. Try again.</p>
+          <p className="text-sm text-danger">Could not reach Xipe. Try again.</p>
         )}
 
         {mutation.data?.error && <p className="text-sm text-danger">{mutation.data.error}</p>}

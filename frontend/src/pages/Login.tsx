@@ -104,7 +104,7 @@ export function Login() {
           <div>
             <h2 className="font-display text-2xl font-semibold text-ink">Practice smarter.</h2>
             <p className="mt-2 max-w-xs text-sm text-ink-muted">
-              Timed exams, proctoring, AI-drafted questions, and progress tracking — everything for engineering
+              Timed exams, proctoring, Xipe-drafted questions, and progress tracking — everything for engineering
               practice in one place.
             </p>
           </div>

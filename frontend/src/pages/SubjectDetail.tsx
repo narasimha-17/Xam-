@@ -19,7 +19,6 @@ import {
 import { useAuth } from "../auth/AuthContext";
 import { fetchSubject } from "../lib/subjects";
 import { fetchPdfs, openPdf, uploadPdf } from "../lib/pdfs";
-import { fetchAiStatus } from "../lib/ai";
 import { deleteExam, duplicateExam, fetchExams, setExamPublished } from "../lib/exams";
 import type { ExamSummary, Pdf } from "../types/api";
 import { Button } from "../components/ui/Button";
@@ -74,9 +73,6 @@ export function SubjectDetail() {
     queryFn: () => fetchPdfs(subjectId),
     enabled: !Number.isNaN(subjectId),
   });
-
-  const { data: aiStatus } = useQuery({ queryKey: ["ai-status"], queryFn: fetchAiStatus, staleTime: 5 * 60_000 });
-  const aiEnabled = aiStatus?.enabled !== false;
 
   const { data: exams, isLoading: examsLoading } = useQuery({
     queryKey: ["exams", subjectId],
@@ -149,8 +145,8 @@ export function SubjectDetail() {
           <h1 className="font-display text-2xl font-semibold text-ink">{subject.name}</h1>
           {subject.description && <p className="mt-1 text-sm text-ink-muted">{subject.description}</p>}
         </div>
-        <Button variant="outline" disabled={!aiEnabled} onClick={() => setTopicExplainerOpen(true)}>
-          <Sparkles size={16} /> {aiEnabled ? "Explain a topic" : "Explain a topic (coming soon)"}
+        <Button variant="outline" onClick={() => setTopicExplainerOpen(true)}>
+          <Sparkles size={16} /> Explain a topic
         </Button>
       </div>
 
@@ -292,8 +288,8 @@ export function SubjectDetail() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" disabled={!aiEnabled} onClick={() => setPdfToExplain(pdf)}>
-                <Sparkles size={15} /> {aiEnabled ? "Explain" : "Coming soon"}
+              <Button variant="outline" onClick={() => setPdfToExplain(pdf)}>
+                <Sparkles size={15} /> Explain
               </Button>
               <Button variant="outline" isLoading={openingPdfId === pdf.id} onClick={() => handleOpenPdf(pdf.id)}>
                 <Download size={15} /> Open
