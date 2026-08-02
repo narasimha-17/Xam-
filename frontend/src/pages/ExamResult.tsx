@@ -177,15 +177,15 @@ export function ExamResult() {
         <p className="mt-1 text-sm text-ink-muted">Submitted {new Date(attempt.submitted_at!).toLocaleString()}</p>
       </div>
 
-      <Card className="flex items-center gap-6">
-        <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-4 border-black/10">
+      <Card className="flex items-center gap-4 sm:gap-6">
+        <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 border-black/10 sm:h-24 sm:w-24">
           <div
             className="absolute inset-0 rounded-full border-4 border-accent"
             style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
           />
-          <span className="font-display text-xl font-bold text-ink">{pct}%</span>
+          <span className="font-display text-lg font-bold text-ink sm:text-xl">{pct}%</span>
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="font-display text-2xl font-semibold text-ink">
             {attempt.score} / {attempt.max_score} points
           </p>
@@ -196,36 +196,36 @@ export function ExamResult() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10 text-success">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <Card className="flex items-center gap-2 p-3 sm:gap-3 sm:p-6">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
             <CheckCircle2 size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="font-display text-xl font-semibold text-ink">
               {attempt.answers.filter((a: AttemptAnswerResult) => a.is_correct).length}
             </p>
-            <p className="text-xs text-ink-muted">Correct</p>
+            <p className="truncate text-xs text-ink-muted">Correct</p>
           </div>
         </Card>
-        <Card className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-danger/10 text-danger">
+        <Card className="flex items-center gap-2 p-3 sm:gap-3 sm:p-6">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-danger/10 text-danger">
             <XCircle size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="font-display text-xl font-semibold text-ink">
               {attempt.answers.filter((a: AttemptAnswerResult) => !a.is_correct).length}
             </p>
-            <p className="text-xs text-ink-muted">Incorrect</p>
+            <p className="truncate text-xs text-ink-muted">Incorrect</p>
           </div>
         </Card>
-        <Card className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent-soft">
+        <Card className="flex items-center gap-2 p-3 sm:gap-3 sm:p-6">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent-soft">
             <Percent size={18} />
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="font-display text-xl font-semibold text-ink">{pct}%</p>
-            <p className="text-xs text-ink-muted">Score</p>
+            <p className="truncate text-xs text-ink-muted">Score</p>
           </div>
         </Card>
       </div>

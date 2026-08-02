@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, LogOut, Search, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Menu, Search, UserRound } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import { fetchSubjects } from "../../lib/subjects";
 import { cn } from "../../lib/utils";
 import { NotificationBell } from "./NotificationBell";
+import { useSidebar } from "./SidebarContext";
 
 const SECTION_LABELS: Record<string, string> = {
   dashboard: "Dashboard",
@@ -24,6 +25,7 @@ function useBreadcrumb() {
 
 export function TopBar() {
   const { user, logout } = useAuth();
+  const { openMobile } = useSidebar();
   const navigate = useNavigate();
   const section = useBreadcrumb();
 
@@ -53,17 +55,26 @@ export function TopBar() {
   }
 
   return (
-    <header className="glass sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-black/10 px-8">
-      <nav className="flex items-center gap-1.5 text-sm text-ink-muted">
-        <Link to="/dashboard" className="hover:text-ink">
-          Home
-        </Link>
-        <span className="text-ink-faint">/</span>
-        <span className="font-medium text-ink">{section}</span>
-      </nav>
+    <header className="glass sticky top-0 z-20 flex h-16 items-center justify-between gap-2 border-b border-black/10 px-4 sm:gap-4 sm:px-6 lg:px-8">
+      <div className="flex min-w-0 items-center gap-2">
+        <button
+          onClick={openMobile}
+          aria-label="Open menu"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-black/5 hover:text-ink lg:hidden"
+        >
+          <Menu size={20} />
+        </button>
+        <nav className="flex min-w-0 items-center gap-1.5 truncate text-sm text-ink-muted">
+          <Link to="/dashboard" className="hover:text-ink">
+            Home
+          </Link>
+          <span className="text-ink-faint">/</span>
+          <span className="truncate font-medium text-ink">{section}</span>
+        </nav>
+      </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative w-64">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="relative hidden w-48 md:block lg:w-64">
           <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-faint" />
           <input
             type="text"

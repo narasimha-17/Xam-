@@ -64,7 +64,7 @@ export function QuestionEditor({ qIndex, onRemove }: { qIndex: number; onRemove:
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Select label="Type" {...register(`questions.${qIndex}.type`)}>
           {Object.entries(TYPE_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
@@ -206,7 +206,7 @@ export function QuestionEditor({ qIndex, onRemove }: { qIndex: number; onRemove:
             </p>
             {testCasesArray.fields.map((field, tIndex) => (
               <div key={field.id} className="flex flex-col gap-2 rounded-lg border border-black/10 p-3">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <Input
                     placeholder="Input (stdin)"
                     {...register(`questions.${qIndex}.test_cases.${tIndex}.input`)}

@@ -38,7 +38,7 @@ export function CodingPractice() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
             <Code2 size={24} className="text-accent-soft" /> Coding practice
@@ -48,7 +48,7 @@ export function CodingPractice() {
           </p>
         </div>
         {problems && problems.length > 0 && (
-          <div className="text-sm text-ink-muted">
+          <div className="shrink-0 text-sm text-ink-muted">
             <span className="font-medium text-ink">{solvedCount}</span> / {problems.length} solved
           </div>
         )}

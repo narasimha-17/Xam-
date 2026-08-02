@@ -153,24 +153,24 @@ function JobCard({
 
       <p className="line-clamp-2 text-sm text-ink-muted">{job.description}</p>
 
-      <div className="mt-auto flex items-center justify-between border-t border-black/5 pt-3">
-        <div>
-          {job.package && <p className="font-display text-sm font-semibold text-ink">{job.package}</p>}
-          {job.min_qualification && <p className="text-xs text-ink-faint">{job.min_qualification}</p>}
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-black/5 pt-3">
+        <div className="min-w-0">
+          {job.package && <p className="truncate font-display text-sm font-semibold text-ink">{job.package}</p>}
+          {job.min_qualification && <p className="truncate text-xs text-ink-faint">{job.min_qualification}</p>}
         </div>
         {closed ? (
-          <span className="text-xs font-medium text-ink-faint">Closed</span>
+          <span className="shrink-0 text-xs font-medium text-ink-faint">Closed</span>
         ) : job.application_link ? (
           <a
             href={job.application_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-sm font-medium text-accent hover:underline"
+            className="flex shrink-0 items-center gap-1 text-sm font-medium text-accent hover:underline"
           >
             Apply <ArrowUpRight size={13} />
           </a>
         ) : (
-          <span className="text-xs text-ink-faint">No link provided</span>
+          <span className="shrink-0 text-xs text-ink-faint">No link provided</span>
         )}
       </div>
     </Card>
@@ -276,7 +276,7 @@ export function Jobs() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
             <Briefcase size={24} className="text-accent-soft" /> Off-campus jobs
@@ -286,7 +286,7 @@ export function Jobs() {
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={openCreateModal}>
+          <Button onClick={openCreateModal} className="w-fit shrink-0 whitespace-nowrap">
             <Plus size={16} /> Post a job
           </Button>
         )}
@@ -341,11 +341,11 @@ export function Jobs() {
 
       <Modal open={modalOpen} onClose={closeModal} title={editingId ? "Edit job" : "Post a job"} className="max-w-lg">
         <form onSubmit={handleSubmit(onSubmit)} className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto pr-1">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input label="Job title" {...register("title", { required: true })} />
             <Input label="Company" {...register("company_name", { required: true })} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Select label="Job type" {...register("job_type")}>
               <option value="full_time">Full-time</option>
               <option value="internship">Internship</option>
@@ -358,11 +358,11 @@ export function Jobs() {
             Remote role
           </label>
           <Textarea label="Description" rows={4} {...register("description", { required: true })} />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input label="Package / stipend" placeholder="e.g. ₹12–16 LPA" {...register("package")} />
             <Input label="Min. qualification" placeholder="e.g. B.Tech, 2026 batch" {...register("min_qualification")} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Input label="Application link" placeholder="https://..." {...register("application_link")} />
             <Input label="Application deadline" type="date" {...register("application_deadline")} />
           </div>

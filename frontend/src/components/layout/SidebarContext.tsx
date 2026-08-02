@@ -5,12 +5,16 @@ const STORAGE_KEY = "xamplus_sidebar_collapsed";
 interface SidebarContextValue {
   isCollapsed: boolean;
   toggle: () => void;
+  isMobileOpen: boolean;
+  openMobile: () => void;
+  closeMobile: () => void;
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(() => localStorage.getItem(STORAGE_KEY) === "1");
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   function toggle() {
     setIsCollapsed((prev) => {
@@ -20,7 +24,19 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     });
   }
 
-  return <SidebarContext.Provider value={{ isCollapsed, toggle }}>{children}</SidebarContext.Provider>;
+  return (
+    <SidebarContext.Provider
+      value={{
+        isCollapsed,
+        toggle,
+        isMobileOpen,
+        openMobile: () => setIsMobileOpen(true),
+        closeMobile: () => setIsMobileOpen(false),
+      }}
+    >
+      {children}
+    </SidebarContext.Provider>
+  );
 }
 
 export function useSidebar() {
