@@ -4,6 +4,7 @@ export interface User {
   id: number;
   email: string;
   full_name: string;
+  roll_number: string | null;
   phone_number: string | null;
   location: string | null;
   institution: string | null;
@@ -508,9 +509,21 @@ export interface StudentProgress {
   user_id: number;
   full_name: string;
   email: string;
+  roll_number: string | null;
   total_attempts: number;
   average_score_pct: number;
   last_attempt_at: string | null;
+  total_violations: number;
+}
+
+export interface StudentAttempt {
+  attempt_id: number;
+  exam_title: string;
+  subject_name: string;
+  score: number | null;
+  max_score: number | null;
+  submitted_at: string | null;
+  violation_count: number;
 }
 
 // ---------- Admin: user management ----------

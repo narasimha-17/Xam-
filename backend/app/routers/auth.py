@@ -32,6 +32,7 @@ async def register(payload: UserRegister, db: AsyncSession = Depends(get_db)):
         email=payload.email,
         hashed_password=hash_password(payload.password),
         full_name=payload.full_name,
+        roll_number=payload.roll_number,
         phone_number=payload.phone_number,
         location=payload.location,
         institution=payload.institution,
@@ -68,7 +69,7 @@ async def update_me(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    for field in ("full_name", "phone_number", "location", "institution"):
+    for field in ("full_name", "roll_number", "phone_number", "location", "institution"):
         value = getattr(payload, field)
         if value is not None:
             stripped = value.strip()

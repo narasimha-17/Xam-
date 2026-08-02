@@ -1,16 +1,28 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import get_current_user, require_admin
 from app.db.session import get_db
 from app.models.exam import AttemptStatus, Exam, ExamAttempt
+from app.models.proctoring import ProctorEvent, ProctorEventType
 from app.models.subject import Subject
 from app.models.user import User, UserRole
-from app.schemas.progress import AttemptHistoryEntry, BadgeOut, ProgressStats, StudentProgressOut, SubjectProgress
+from app.schemas.progress import (
+    AttemptHistoryEntry,
+    BadgeOut,
+    ProgressStats,
+    StudentAttemptOut,
+    StudentProgressOut,
+    SubjectProgress,
+)
 from app.services.badges import get_user_badges
 
 router = APIRouter(prefix="/progress", tags=["progress"])
+
+# webcam_snapshot is routine monitoring, not a malpractice signal — every other
+# event type represents a genuine rule violation.
+VIOLATION_TYPES = [t for t in ProctorEventType if t != ProctorEventType.webcam_snapshot]
 
 
 @router.get("/me", response_model=ProgressStats)
@@ -90,14 +102,61 @@ async def all_students_progress(db: AsyncSession = Depends(get_db), _: User = De
         if entry["last"] is None or (submitted_at and submitted_at > entry["last"]):
             entry["last"] = submitted_at
 
+    violations_result = await db.execute(
+        select(ExamAttempt.user_id, func.count(ProctorEvent.id))
+        .join(ProctorEvent, ProctorEvent.attempt_id == ExamAttempt.id)
+        .where(ProctorEvent.event_type.in_(VIOLATION_TYPES))
+        .group_by(ExamAttempt.user_id)
+    )
+    violations_by_user = dict(violations_result.all())
+
     return [
         StudentProgressOut(
             user_id=s.id,
             full_name=s.full_name,
             email=s.email,
+            roll_number=s.roll_number,
             total_attempts=per_user.get(s.id, {}).get("count", 0),
             average_score_pct=round(per_user[s.id]["pct_sum"] / per_user[s.id]["count"], 1) if s.id in per_user else 0.0,
             last_attempt_at=per_user.get(s.id, {}).get("last"),
+            total_violations=violations_by_user.get(s.id, 0),
         )
         for s in students
+    ]
+
+
+@router.get("/students/{user_id}/attempts", response_model=list[StudentAttemptOut])
+async def student_attempts(user_id: int, db: AsyncSession = Depends(get_db), _: User = Depends(require_admin)):
+    student = await db.get(User, user_id)
+    if student is None or student.role != UserRole.student:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
+
+    result = await db.execute(
+        select(ExamAttempt, Exam.title, Subject.name)
+        .join(Exam, Exam.id == ExamAttempt.exam_id)
+        .join(Subject, Subject.id == Exam.subject_id)
+        .where(ExamAttempt.user_id == user_id, ExamAttempt.status == AttemptStatus.submitted)
+        .order_by(ExamAttempt.submitted_at.desc())
+    )
+    rows = result.all()
+
+    violations_result = await db.execute(
+        select(ProctorEvent.attempt_id, func.count(ProctorEvent.id))
+        .join(ExamAttempt, ExamAttempt.id == ProctorEvent.attempt_id)
+        .where(ExamAttempt.user_id == user_id, ProctorEvent.event_type.in_(VIOLATION_TYPES))
+        .group_by(ProctorEvent.attempt_id)
+    )
+    violations_by_attempt = dict(violations_result.all())
+
+    return [
+        StudentAttemptOut(
+            attempt_id=attempt.id,
+            exam_title=exam_title,
+            subject_name=subject_name,
+            score=attempt.score,
+            max_score=attempt.max_score,
+            submitted_at=attempt.submitted_at,
+            violation_count=violations_by_attempt.get(attempt.id, 0),
+        )
+        for attempt, exam_title, subject_name in rows
     ]

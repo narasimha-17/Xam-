@@ -13,6 +13,7 @@ export function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rollNumber, setRollNumber] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [location, setLocation] = useState("");
   const [institution, setInstitution] = useState("");
@@ -28,6 +29,7 @@ export function Register() {
         email,
         password,
         full_name: fullName,
+        roll_number: rollNumber,
         phone_number: phoneNumber,
         location,
         institution,
@@ -100,6 +102,14 @@ export function Register() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Input
+              id="rollNumber"
+              label="Roll number"
+              placeholder="e.g. 21CS1042"
+              value={rollNumber}
+              onChange={(e) => setRollNumber(e.target.value)}
               required
             />
             <Input

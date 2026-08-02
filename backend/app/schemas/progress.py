@@ -39,6 +39,18 @@ class StudentProgressOut(BaseModel):
     user_id: int
     full_name: str
     email: str
+    roll_number: str | None
     total_attempts: int
     average_score_pct: float
     last_attempt_at: datetime | None
+    total_violations: int
+
+
+class StudentAttemptOut(BaseModel):
+    attempt_id: int
+    exam_title: str
+    subject_name: str
+    score: float | None
+    max_score: float | None
+    submitted_at: datetime | None
+    violation_count: int

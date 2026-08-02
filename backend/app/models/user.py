@@ -19,6 +19,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    roll_number: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     institution: Mapped[str | None] = mapped_column(String(255), nullable=True)

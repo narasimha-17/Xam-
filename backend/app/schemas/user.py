@@ -9,11 +9,12 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str
     full_name: str
+    roll_number: str
     phone_number: str
     location: str
     institution: str
 
-    @field_validator("full_name", "phone_number", "location", "institution")
+    @field_validator("full_name", "roll_number", "phone_number", "location", "institution")
     @classmethod
     def not_blank(cls, v: str) -> str:
         stripped = v.strip()
@@ -33,6 +34,7 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     full_name: str
+    roll_number: str | None
     phone_number: str | None
     location: str | None
     institution: str | None
@@ -43,6 +45,7 @@ class UserOut(BaseModel):
 
 class UserUpdate(BaseModel):
     full_name: str | None = None
+    roll_number: str | None = None
     phone_number: str | None = None
     location: str | None = None
     institution: str | None = None

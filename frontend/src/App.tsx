@@ -14,6 +14,7 @@ import { SubjectDetail } from "./pages/SubjectDetail";
 import { ExamBuilder } from "./pages/admin/ExamBuilder";
 import { QuestionReports } from "./pages/admin/QuestionReports";
 import { StudentsProgress } from "./pages/admin/StudentsProgress";
+import { StudentDetail } from "./pages/admin/StudentDetail";
 import { UserManagement } from "./pages/admin/UserManagement";
 import { PlatformDashboard } from "./pages/admin/PlatformDashboard";
 import { ExamTake } from "./pages/ExamTake";
@@ -101,6 +102,16 @@ function App() {
               <RoleRoute role="admin">
                 <AppShell>
                   <StudentsProgress />
+                </AppShell>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/students/:userId"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <StudentDetail />
                 </AppShell>
               </RoleRoute>
             }

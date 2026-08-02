@@ -108,6 +108,7 @@ export function ExamTake() {
   const [autoSubmitMessage, setAutoSubmitMessage] = useState<string | null>(null);
   const autoSubmitTriggeredRef = useRef(false);
   const violationCountRef = useRef(0);
+  const tabSwitchCountRef = useRef(0);
 
   const [proctorConsent, setProctorConsent] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
@@ -234,8 +235,18 @@ export function ExamTake() {
     function handleVisibility() {
       if (document.hidden) {
         logProctorEvent(attemptId!, { event_type: "tab_switch" });
-        registerViolation();
-        warn("Tab switch detected — this has been recorded.");
+        tabSwitchCountRef.current += 1;
+        if (tabSwitchCountRef.current >= 3) {
+          triggerAutoSubmit(
+            "Too many tab switches — submitting your exam…",
+            "You switched tabs 3 times — your exam has been submitted automatically.",
+          );
+        } else {
+          registerViolation();
+          warn(
+            `Tab switch detected (warning ${tabSwitchCountRef.current}/2) — switching tabs one more time will end your exam.`,
+          );
+        }
       }
     }
     document.addEventListener("visibilitychange", handleVisibility);

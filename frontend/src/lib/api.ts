@@ -19,6 +19,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
   full_name: string;
+  roll_number: string;
   phone_number: string;
   location: string;
   institution: string;
@@ -46,6 +47,7 @@ export async function fetchMe(): Promise<User> {
 
 export interface UpdateProfilePayload {
   full_name?: string;
+  roll_number?: string;
   phone_number?: string;
   location?: string;
   institution?: string;

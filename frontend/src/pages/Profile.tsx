@@ -9,6 +9,7 @@ export function Profile() {
   const { user, setUser } = useAuth();
 
   const [fullName, setFullName] = useState(user?.full_name ?? "");
+  const [rollNumber, setRollNumber] = useState(user?.roll_number ?? "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phone_number ?? "");
   const [location, setLocation] = useState(user?.location ?? "");
   const [institution, setInstitution] = useState(user?.institution ?? "");
@@ -21,8 +22,8 @@ export function Profile() {
     setNameError(null);
     setNameMessage(null);
 
-    if (!phoneNumber.trim() || !location.trim() || !institution.trim()) {
-      setNameError("Phone number, location, and institution are all required.");
+    if (!rollNumber.trim() || !phoneNumber.trim() || !location.trim() || !institution.trim()) {
+      setNameError("Roll number, phone number, location, and institution are all required.");
       return;
     }
 
@@ -30,6 +31,7 @@ export function Profile() {
     try {
       const updated = await updateProfile({
         full_name: fullName,
+        roll_number: rollNumber,
         phone_number: phoneNumber,
         location,
         institution,
@@ -55,6 +57,13 @@ export function Profile() {
         <form onSubmit={handleNameSubmit} className="flex flex-col gap-4">
           <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
           <Input label="Email" value={user?.email ?? ""} disabled />
+          <Input
+            label="Roll number"
+            placeholder="e.g. 21CS1042"
+            value={rollNumber}
+            onChange={(e) => setRollNumber(e.target.value)}
+            required
+          />
           <Input
             label="Phone number"
             type="tel"
