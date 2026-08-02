@@ -102,6 +102,7 @@ export function ExamTake() {
 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const wasFullscreenRef = useRef(false);
+  const handleSubmitRef = useRef<() => void>(() => {});
 
   const [proctorConsent, setProctorConsent] = useState(false);
   const [agreedToPolicy, setAgreedToPolicy] = useState(false);
@@ -185,7 +186,8 @@ export function ExamTake() {
       setIsFullscreen(now);
       if (!now && wasFullscreenRef.current && examStarted && attemptId) {
         logProctorEvent(attemptId, { event_type: "fullscreen_exit" });
-        warn("You exited fullscreen — this has been recorded.");
+        warn("You exited fullscreen — your exam is being submitted automatically.");
+        handleSubmitRef.current();
       }
       wasFullscreenRef.current = now;
     }
@@ -357,6 +359,10 @@ export function ExamTake() {
       submitMutation.mutate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [submitMutation.isPending, submitMutation.isSuccess]);
+
+  useEffect(() => {
+    handleSubmitRef.current = handleSubmit;
+  }, [handleSubmit]);
 
   useEffect(() => {
     if (!deadline) return;
