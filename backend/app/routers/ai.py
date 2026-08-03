@@ -22,7 +22,7 @@ from app.schemas.ai import (
     TopicExplainIn,
 )
 from app.services import ollama
-from app.services.interview_bank import is_aiml_role, pick_aiml_question
+from app.services.interview_bank import is_aiml_role, pick_aiml_question, sample_feedback
 from app.services.pdf_text import extract_pdf_excerpt
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -123,17 +123,19 @@ async def explain_pdf_endpoint(
 
 @router.post("/mock-interview/question", response_model=InterviewQuestionOut)
 async def mock_interview_question(payload: InterviewQuestionIn, _: User = Depends(get_current_user)):
-    _require_ai_enabled()
     if not payload.job_role.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Enter a job role to interview for")
 
     history = [qa.model_dump() for qa in payload.history]
 
+    # The AI/ML sample bank is static content — no LLM involved — so it works even in
+    # environments (like the deployed backend) where Ollama isn't reachable.
     if is_aiml_role(payload.job_role):
         question = pick_aiml_question(history)
         if question:
             return InterviewQuestionOut(question=question, error=None)
 
+    _require_ai_enabled()
     try:
         async with ollama.ollama_slot():
             outcome = await ollama.generate_interview_question(payload.job_role.strip(), history)
@@ -147,10 +149,14 @@ async def mock_interview_question(payload: InterviewQuestionIn, _: User = Depend
 
 @router.post("/mock-interview/feedback", response_model=InterviewFeedbackOut)
 async def mock_interview_feedback(payload: InterviewFeedbackIn, _: User = Depends(get_current_user)):
-    _require_ai_enabled()
     if not payload.history:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No interview answers to evaluate")
 
+    if is_aiml_role(payload.job_role):
+        sample = sample_feedback([qa.model_dump() for qa in payload.history])
+        return InterviewFeedbackOut(**sample, error=None)
+
+    _require_ai_enabled()
     try:
         async with ollama.ollama_slot():
             outcome = await ollama.generate_interview_feedback(

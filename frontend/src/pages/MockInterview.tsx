@@ -1,16 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Award, Bot, Briefcase, Mic, MicOff, ThumbsUp, TrendingUp, Volume2 } from "lucide-react";
+import {
+  Award,
+  Bot,
+  Briefcase,
+  Info,
+  ListChecks,
+  Mic,
+  MicOff,
+  ThumbsUp,
+  TrendingUp,
+  Volume2,
+} from "lucide-react";
 import { fetchAiStatus, fetchInterviewFeedback, fetchInterviewQuestion } from "../lib/ai";
 import type { InterviewFeedbackResult, InterviewQAPair } from "../types/api";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
-import { ComingSoon } from "../components/ui/ComingSoon";
 import { Loader, FullPageLoader } from "../components/ui/Loader";
 import { cn } from "../lib/utils";
 
 const QUESTION_COUNT = 5;
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  return (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? fallback;
+}
 
 function getSpeechRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
@@ -99,8 +113,8 @@ export function MockInterview() {
         () => setIsSpeaking(true),
         () => setIsSpeaking(false),
       );
-    } catch {
-      setError("Could not reach Xipe. Try again.");
+    } catch (err) {
+      setError(extractErrorMessage(err, "Could not reach Xipe. Try again."));
     } finally {
       setIsFetchingQuestion(false);
     }
@@ -154,8 +168,8 @@ export function MockInterview() {
         return;
       }
       setFeedback(result);
-    } catch {
-      setError("Could not reach Xipe. Try again.");
+    } catch (err) {
+      setError(extractErrorMessage(err, "Could not reach Xipe. Try again."));
     } finally {
       setIsFetchingFeedback(false);
     }
@@ -193,16 +207,7 @@ export function MockInterview() {
 
   if (statusLoading) return <FullPageLoader label="Loading..." />;
 
-  if (status?.enabled === false) {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <ComingSoon
-          title="Coming soon"
-          description="AI mock interviews aren't available in this environment yet — it's on the way in a future release."
-        />
-      </div>
-    );
-  }
+  const aiDisabled = status?.enabled === false;
 
   return (
     <div className={cn("mx-auto flex flex-col gap-6", stage === "interview" ? "max-w-4xl" : "max-w-2xl")}>
@@ -217,9 +222,19 @@ export function MockInterview() {
 
       {stage === "setup" && (
         <Card className="flex flex-col gap-4">
+          {aiDisabled && (
+            <div className="flex gap-2.5 rounded-xl border border-accent/20 bg-accent/5 p-3 text-sm text-ink-muted">
+              <Info size={16} className="mt-0.5 shrink-0 text-accent-soft" />
+              <p>
+                Full AI-generated interviews aren't available in this environment. Try{" "}
+                <span className="font-medium text-ink">"AI/ML Engineer"</span> for a fully working sample interview
+                with curated questions and a self-review guide at the end.
+              </p>
+            </div>
+          )}
           <Input
             label="Job role"
-            placeholder="e.g. Backend Engineer, Data Scientist, Product Manager"
+            placeholder="e.g. AI/ML Engineer, Backend Engineer, Data Scientist"
             value={jobRole}
             onChange={(e) => setJobRole(e.target.value)}
           />
@@ -305,15 +320,21 @@ export function MockInterview() {
 
           {feedback && !isFetchingFeedback && !error && (
             <>
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent-soft">
-                  <Award size={22} />
+              {feedback.is_sample ? (
+                <div className="flex items-center gap-2 rounded-full bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent-soft w-fit">
+                  <ListChecks size={13} /> Sample feedback — self-review, not AI-graded
                 </div>
-                <div>
-                  <p className="font-display text-lg font-semibold text-ink">{feedback.score} / 10</p>
-                  <p className="text-xs text-ink-muted">Overall interview score</p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent-soft">
+                    <Award size={22} />
+                  </div>
+                  <div>
+                    <p className="font-display text-lg font-semibold text-ink">{feedback.score} / 10</p>
+                    <p className="text-xs text-ink-muted">Overall interview score</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <p className="text-sm text-ink-muted">{feedback.overall_feedback}</p>
 
@@ -340,6 +361,24 @@ export function MockInterview() {
                       <li key={i}>{s}</li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {feedback.key_points.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                    <ListChecks size={13} /> What a strong answer would cover
+                  </h3>
+                  {feedback.key_points.map((kp, i) => (
+                    <div key={i} className="rounded-xl border border-black/10 bg-base-soft/40 p-3">
+                      <p className="text-sm font-medium text-ink">{kp.question}</p>
+                      <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-ink-muted">
+                        {kp.points.map((p, pi) => (
+                          <li key={pi}>{p}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
                 </div>
               )}
             </>

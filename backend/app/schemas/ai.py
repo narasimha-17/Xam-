@@ -48,9 +48,16 @@ class InterviewFeedbackIn(BaseModel):
     history: list[InterviewQAPair] = []
 
 
+class InterviewKeyPoints(BaseModel):
+    question: str
+    points: list[str]
+
+
 class InterviewFeedbackOut(BaseModel):
     overall_feedback: str = ""
     strengths: list[str] = []
     improvements: list[str] = []
     score: int = 0
+    is_sample: bool = False
+    key_points: list[InterviewKeyPoints] = []
     error: str | None = None

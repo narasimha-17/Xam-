@@ -259,11 +259,18 @@ export interface InterviewFeedbackInput {
   history: InterviewQAPair[];
 }
 
+export interface InterviewKeyPoints {
+  question: string;
+  points: string[];
+}
+
 export interface InterviewFeedbackResult {
   overall_feedback: string;
   strengths: string[];
   improvements: string[];
   score: number;
+  is_sample: boolean;
+  key_points: InterviewKeyPoints[];
   error: string | null;
 }
 
