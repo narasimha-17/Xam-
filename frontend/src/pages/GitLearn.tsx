@@ -194,7 +194,7 @@ export function GitLearn() {
             </div>
           </Card>
 
-          <Card className="flex flex-col gap-2 bg-ink p-4">
+          <div className="flex flex-col gap-2 rounded-2xl bg-ink p-4 shadow-glow">
             <div className="flex items-center gap-2 text-xs font-medium text-base/70">
               <Terminal size={14} /> Terminal
             </div>
@@ -221,11 +221,15 @@ export function GitLearn() {
                 autoCapitalize="off"
                 className="flex-1 bg-transparent font-mono text-sm text-base outline-none placeholder:text-base/30"
               />
-              <Button variant="outline" onClick={runInput} className="border-base/20 py-1.5 text-xs text-base hover:bg-white/10">
+              <Button
+                variant="outline"
+                onClick={runInput}
+                className="border-base/20 py-1.5 text-xs !text-base hover:bg-white/10"
+              >
                 Run
               </Button>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
