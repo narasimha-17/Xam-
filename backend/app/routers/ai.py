@@ -22,6 +22,7 @@ from app.schemas.ai import (
     TopicExplainIn,
 )
 from app.services import ollama
+from app.services.interview_bank import is_aiml_role, pick_aiml_question
 from app.services.pdf_text import extract_pdf_excerpt
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -126,11 +127,16 @@ async def mock_interview_question(payload: InterviewQuestionIn, _: User = Depend
     if not payload.job_role.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Enter a job role to interview for")
 
+    history = [qa.model_dump() for qa in payload.history]
+
+    if is_aiml_role(payload.job_role):
+        question = pick_aiml_question(history)
+        if question:
+            return InterviewQuestionOut(question=question, error=None)
+
     try:
         async with ollama.ollama_slot():
-            outcome = await ollama.generate_interview_question(
-                payload.job_role.strip(), [qa.model_dump() for qa in payload.history]
-            )
+            outcome = await ollama.generate_interview_question(payload.job_role.strip(), history)
     except ollama.OllamaBusy:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
