@@ -27,6 +27,16 @@
   --animate-pulse-glow: pulse-glow 2.2s ease-in-out infinite;
   --animate-fade-in: fade-in 0.4s ease-out;
   --animate-fade-in-up: fade-in-up 0.45s ease-out;
+  --animate-marquee: marquee 16s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @keyframes pulse-glow {

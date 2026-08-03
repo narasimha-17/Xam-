@@ -208,9 +208,24 @@ export function MockInterview() {
   if (statusLoading) return <FullPageLoader label="Loading..." />;
 
   const aiDisabled = status?.enabled === false;
+  const marqueeText =
+    "This is a mock / demo experience — curated sample questions, not live AI grading. The full AI-powered mock interview launches in Version 2.";
 
   return (
     <div className={cn("mx-auto flex flex-col gap-6", stage === "interview" ? "max-w-4xl" : "max-w-2xl")}>
+      <div className="overflow-hidden rounded-full border border-accent/20 bg-accent/10">
+        <div className="flex w-max animate-marquee whitespace-nowrap py-1.5">
+          {[0, 1].map((i) => (
+            <span key={i} className="flex items-center px-4 text-xs font-medium text-accent-dim">
+              {marqueeText}
+              <span className="mx-4 text-accent-soft" aria-hidden="true">
+                &bull;
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+
       <div>
         <h1 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
           <Briefcase size={24} className="text-accent-soft" /> AI mock interview
