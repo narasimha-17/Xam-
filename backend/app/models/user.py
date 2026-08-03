@@ -20,6 +20,8 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     roll_number: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    section: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    department: Mapped[str | None] = mapped_column(String(120), nullable=True)
     phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     institution: Mapped[str | None] = mapped_column(String(255), nullable=True)

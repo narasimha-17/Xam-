@@ -35,6 +35,8 @@ class UserOut(BaseModel):
     email: EmailStr
     full_name: str
     roll_number: str | None
+    section: str | None
+    department: str | None
     phone_number: str | None
     location: str | None
     institution: str | None
@@ -46,6 +48,8 @@ class UserOut(BaseModel):
 class UserUpdate(BaseModel):
     full_name: str | None = None
     roll_number: str | None = None
+    section: str | None = None
+    department: str | None = None
     phone_number: str | None = None
     location: str | None = None
     institution: str | None = None

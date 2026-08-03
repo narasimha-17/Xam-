@@ -28,6 +28,8 @@ import { CodingPractice } from "./pages/CodingPractice";
 import { CodingProblemSolve } from "./pages/CodingProblemSolve";
 import { MockInterview } from "./pages/MockInterview";
 import { Jobs } from "./pages/Jobs";
+import { Competitions } from "./pages/Competitions";
+import { CompetitionRoom } from "./pages/CompetitionRoom";
 import { Profile } from "./pages/Profile";
 import { NotFound } from "./pages/NotFound";
 
@@ -212,6 +214,26 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <Jobs />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/competitions"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <Competitions />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/competitions/:roomId"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <CompetitionRoom />
                 </AppShell>
               </ProtectedRoute>
             }

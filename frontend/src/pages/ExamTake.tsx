@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   Video,
 } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
 import { fetchExamForStudent, startAttempt, submitAttempt } from "../lib/exams";
 import { logProctorEvent } from "../lib/proctoring";
 import {
@@ -56,6 +57,9 @@ export function ExamTake() {
   const { id } = useParams<{ id: string }>();
   const examId = Number(id);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const profileIncomplete =
+    user?.role !== "admin" && !(user?.roll_number && user?.section && user?.department);
 
   const { data: exam, isLoading: examLoading } = useQuery({
     queryKey: ["exam-take", examId],
@@ -443,6 +447,27 @@ export function ExamTake() {
     return (
       <ExamPageShell>
         <FullPageLoader label="Loading exam..." />
+      </ExamPageShell>
+    );
+  }
+
+  if (profileIncomplete) {
+    return (
+      <ExamPageShell>
+        <div className="flex min-h-[70vh] items-center justify-center py-8">
+          <Card className="flex w-full max-w-md flex-col items-center gap-4 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-warning/10 text-warning">
+              <ShieldAlert size={22} />
+            </div>
+            <h1 className="font-display text-xl font-semibold text-ink">Complete your profile first</h1>
+            <p className="text-sm text-ink-muted">
+              Add your roll number, section, and department to your profile before you can take an exam.
+            </p>
+            <Link to="/profile">
+              <Button>Go to profile</Button>
+            </Link>
+          </Card>
+        </div>
       </ExamPageShell>
     );
   }

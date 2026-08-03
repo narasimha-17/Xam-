@@ -69,7 +69,7 @@ async def update_me(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    for field in ("full_name", "roll_number", "phone_number", "location", "institution"):
+    for field in ("full_name", "roll_number", "section", "department", "phone_number", "location", "institution"):
         value = getattr(payload, field)
         if value is not None:
             stripped = value.strip()

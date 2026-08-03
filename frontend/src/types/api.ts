@@ -5,6 +5,8 @@ export interface User {
   email: string;
   full_name: string;
   roll_number: string | null;
+  section: string | null;
+  department: string | null;
   phone_number: string | null;
   location: string | null;
   institution: string | null;
@@ -795,4 +797,51 @@ export interface JobPostingInput {
   application_link: string | null;
   application_deadline: string | null;
   is_active: boolean;
+}
+
+// ---------- Live competitions ----------
+
+export type CompetitionStatus = "waiting" | "active" | "finished";
+
+export interface CompetitionParticipant {
+  id: number;
+  user_id: number;
+  full_name: string;
+  score: number;
+}
+
+export interface CompetitionOption {
+  id: number;
+  option_text: string;
+  order: number;
+}
+
+export interface CompetitionQuestion {
+  id: number;
+  question_text: string;
+  points: number;
+  options: CompetitionOption[];
+}
+
+export interface CompetitionState {
+  id: number;
+  code: string;
+  exam_title: string;
+  status: CompetitionStatus;
+  current_question_index: number;
+  total_questions: number;
+  time_limit_seconds: number;
+  question_started_at: string | null;
+  current_question: CompetitionQuestion | null;
+  participants: CompetitionParticipant[];
+  is_host: boolean;
+  my_participant_id: number | null;
+  has_answered_current: boolean;
+  answered_count: number;
+}
+
+export interface CompetitionAnswerResult {
+  is_correct: boolean;
+  points_awarded: number;
+  correct_option_id: number;
 }

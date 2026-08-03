@@ -18,6 +18,7 @@ from app.models.system import PasswordResetToken, AdminActivityLog, Notification
 from app.models.puzzle import Puzzle, PuzzleAttempt
 from app.models.coding import CodingProblem, CodingTestCase, CodingSubmission
 from app.models.job import JobPosting
+from app.models.competition import CompetitionRoom, CompetitionParticipant, CompetitionAnswer, CompetitionStatus
 
 __all__ = [
     "User",
@@ -46,4 +47,8 @@ __all__ = [
     "CodingTestCase",
     "CodingSubmission",
     "JobPosting",
+    "CompetitionRoom",
+    "CompetitionParticipant",
+    "CompetitionAnswer",
+    "CompetitionStatus",
 ]

@@ -10,6 +10,8 @@ export function Profile() {
 
   const [fullName, setFullName] = useState(user?.full_name ?? "");
   const [rollNumber, setRollNumber] = useState(user?.roll_number ?? "");
+  const [section, setSection] = useState(user?.section ?? "");
+  const [department, setDepartment] = useState(user?.department ?? "");
   const [phoneNumber, setPhoneNumber] = useState(user?.phone_number ?? "");
   const [location, setLocation] = useState(user?.location ?? "");
   const [institution, setInstitution] = useState(user?.institution ?? "");
@@ -22,8 +24,15 @@ export function Profile() {
     setNameError(null);
     setNameMessage(null);
 
-    if (!rollNumber.trim() || !phoneNumber.trim() || !location.trim() || !institution.trim()) {
-      setNameError("Roll number, phone number, location, and institution are all required.");
+    if (
+      !rollNumber.trim() ||
+      !section.trim() ||
+      !department.trim() ||
+      !phoneNumber.trim() ||
+      !location.trim() ||
+      !institution.trim()
+    ) {
+      setNameError("Roll number, section, department, phone number, location, and institution are all required.");
       return;
     }
 
@@ -32,6 +41,8 @@ export function Profile() {
       const updated = await updateProfile({
         full_name: fullName,
         roll_number: rollNumber,
+        section,
+        department,
         phone_number: phoneNumber,
         location,
         institution,
@@ -49,7 +60,10 @@ export function Profile() {
     <div className="flex max-w-xl flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink">Profile</h1>
-        <p className="mt-1 text-sm text-ink-muted">Update your account details.</p>
+        <p className="mt-1 text-sm text-ink-muted">
+          Update your account details. Roll number, section, and department must be filled in before you can take an
+          exam.
+        </p>
       </div>
 
       <Card className="flex flex-col gap-4">
@@ -57,11 +71,27 @@ export function Profile() {
         <form onSubmit={handleNameSubmit} className="flex flex-col gap-4">
           <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
           <Input label="Email" value={user?.email ?? ""} disabled />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Input
+              label="Roll number"
+              placeholder="e.g. 21CS1042"
+              value={rollNumber}
+              onChange={(e) => setRollNumber(e.target.value)}
+              required
+            />
+            <Input
+              label="Section"
+              placeholder="e.g. A"
+              value={section}
+              onChange={(e) => setSection(e.target.value)}
+              required
+            />
+          </div>
           <Input
-            label="Roll number"
-            placeholder="e.g. 21CS1042"
-            value={rollNumber}
-            onChange={(e) => setRollNumber(e.target.value)}
+            label="Department"
+            placeholder="e.g. Computer Science and Engineering"
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
             required
           />
           <Input

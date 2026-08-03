@@ -48,6 +48,8 @@ export async function fetchMe(): Promise<User> {
 export interface UpdateProfilePayload {
   full_name?: string;
   roll_number?: string;
+  section?: string;
+  department?: string;
   phone_number?: string;
   location?: string;
   institution?: string;

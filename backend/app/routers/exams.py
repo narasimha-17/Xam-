@@ -485,6 +485,11 @@ async def start_attempt(exam_id: int, db: AsyncSession = Depends(get_db), user: 
     exam = await _get_exam_or_404(exam_id, db)
     if not exam.is_published and user.role != UserRole.admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Exam is not published")
+    if user.role != UserRole.admin and not (user.roll_number and user.section and user.department):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Complete your profile (roll number, section, and department) before taking an exam.",
+        )
 
     now = datetime.now(timezone.utc)
     if user.role != UserRole.admin:
