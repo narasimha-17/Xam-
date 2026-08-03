@@ -27,6 +27,7 @@ import { DailyPuzzle } from "./pages/DailyPuzzle";
 import { CodingPractice } from "./pages/CodingPractice";
 import { CodingProblemSolve } from "./pages/CodingProblemSolve";
 import { MockInterview } from "./pages/MockInterview";
+import { GitLearn } from "./pages/GitLearn";
 import { Jobs } from "./pages/Jobs";
 import { Competitions } from "./pages/Competitions";
 import { CompetitionRoom } from "./pages/CompetitionRoom";
@@ -204,6 +205,16 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <MockInterview />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/git-learn"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <GitLearn />
                 </AppShell>
               </ProtectedRoute>
             }

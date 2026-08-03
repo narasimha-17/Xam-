@@ -12,6 +12,7 @@ from app.routers import (
     competitions,
     discussions,
     exams,
+    git_learn,
     jobs,
     notifications,
     pdfs,
@@ -49,6 +50,7 @@ app.include_router(puzzles.router)
 app.include_router(coding.router)
 app.include_router(jobs.router)
 app.include_router(competitions.router)
+app.include_router(git_learn.router)
 
 
 @app.get("/health")

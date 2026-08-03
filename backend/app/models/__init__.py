@@ -19,6 +19,7 @@ from app.models.puzzle import Puzzle, PuzzleAttempt
 from app.models.coding import CodingProblem, CodingTestCase, CodingSubmission
 from app.models.job import JobPosting
 from app.models.competition import CompetitionRoom, CompetitionParticipant, CompetitionAnswer, CompetitionStatus
+from app.models.git_learn import GitLevelProgress
 
 __all__ = [
     "User",
@@ -51,4 +52,5 @@ __all__ = [
     "CompetitionParticipant",
     "CompetitionAnswer",
     "CompetitionStatus",
+    "GitLevelProgress",
 ]
