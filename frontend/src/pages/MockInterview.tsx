@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Award, Briefcase, Mic, MicOff, ThumbsUp, TrendingUp, Volume2 } from "lucide-react";
+import { Award, Bot, Briefcase, Mic, MicOff, ThumbsUp, TrendingUp, Volume2 } from "lucide-react";
 import { fetchAiStatus, fetchInterviewFeedback, fetchInterviewQuestion } from "../lib/ai";
 import type { InterviewFeedbackResult, InterviewQAPair } from "../types/api";
 import { Card } from "../components/ui/Card";
@@ -8,6 +8,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { ComingSoon } from "../components/ui/ComingSoon";
 import { Loader, FullPageLoader } from "../components/ui/Loader";
+import { cn } from "../lib/utils";
 
 const QUESTION_COUNT = 5;
 
@@ -15,12 +16,50 @@ function getSpeechRecognitionCtor(): (new () => SpeechRecognitionLike) | null {
   return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
 }
 
-function speak(text: string) {
-  if (!("speechSynthesis" in window)) return;
+function speak(text: string, onStart: () => void, onEnd: () => void) {
+  if (!("speechSynthesis" in window)) {
+    onEnd();
+    return;
+  }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 1;
+  utterance.onstart = onStart;
+  utterance.onend = onEnd;
+  utterance.onerror = onEnd;
   window.speechSynthesis.speak(utterance);
+}
+
+function XipeAvatar({ isSpeaking, isListening }: { isSpeaking: boolean; isListening: boolean }) {
+  const label = isSpeaking ? "Speaking..." : isListening ? "Listening..." : "Waiting for your answer";
+  return (
+    <Card className="flex w-full shrink-0 flex-col items-center justify-center gap-4 py-10 md:w-56">
+      <div className="relative flex h-28 w-28 items-center justify-center">
+        {isSpeaking && (
+          <>
+            <span className="absolute inset-0 rounded-full bg-accent/25 animate-pulse-glow" />
+            <span
+              className="absolute inset-[-10px] rounded-full border-2 border-accent/30 animate-pulse-glow"
+              style={{ animationDelay: "0.3s" }}
+            />
+          </>
+        )}
+        {isListening && <span className="absolute inset-0 rounded-full bg-accent-soft/25 animate-pulse-glow" />}
+        <div
+          className={cn(
+            "relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-glow transition-colors duration-300",
+            isSpeaking ? "bg-accent" : isListening ? "bg-accent-soft" : "bg-ink/70",
+          )}
+        >
+          <Bot size={42} strokeWidth={1.5} />
+        </div>
+      </div>
+      <div className="text-center">
+        <p className="font-display text-sm font-semibold text-ink">Xipe</p>
+        <p className="mt-0.5 text-xs text-ink-muted">{label}</p>
+      </div>
+    </Card>
+  );
 }
 
 export function MockInterview() {
@@ -36,6 +75,7 @@ export function MockInterview() {
   const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
   const [transcript, setTranscript] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [isFetchingQuestion, setIsFetchingQuestion] = useState(false);
   const [isFetchingFeedback, setIsFetchingFeedback] = useState(false);
   const [feedback, setFeedback] = useState<InterviewFeedbackResult | null>(null);
@@ -54,7 +94,11 @@ export function MockInterview() {
         return;
       }
       setCurrentQuestion(result.question);
-      speak(result.question);
+      speak(
+        result.question,
+        () => setIsSpeaking(true),
+        () => setIsSpeaking(false),
+      );
     } catch {
       setError("Could not reach Xipe. Try again.");
     } finally {
@@ -161,7 +205,7 @@ export function MockInterview() {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className={cn("mx-auto flex flex-col gap-6", stage === "interview" ? "max-w-4xl" : "max-w-2xl")}>
       <div>
         <h1 className="flex items-center gap-2 font-display text-2xl font-semibold text-ink">
           <Briefcase size={24} className="text-accent-soft" /> AI mock interview
@@ -192,53 +236,65 @@ export function MockInterview() {
       )}
 
       {stage === "interview" && (
-        <Card className="flex flex-col gap-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">
-            Question {history.length + 1} of {QUESTION_COUNT}
-          </p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-stretch">
+          <XipeAvatar isSpeaking={isSpeaking} isListening={isRecording} />
 
-          {isFetchingQuestion && <Loader label="Xipe is preparing your next question..." />}
+          <Card className="flex flex-1 flex-col gap-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-ink-faint">
+              Question {history.length + 1} of {QUESTION_COUNT}
+            </p>
 
-          {currentQuestion && !isFetchingQuestion && (
-            <>
-              <div className="flex items-start gap-2 rounded-xl border border-black/10 bg-base-soft/60 p-4">
-                <Volume2 size={16} className="mt-0.5 shrink-0 text-accent-soft" />
-                <p className="text-sm font-medium text-ink">{currentQuestion}</p>
-              </div>
+            {isFetchingQuestion && <Loader label="Xipe is preparing your next question..." />}
 
-              <textarea
-                value={transcript}
-                onChange={(e) => setTranscript(e.target.value)}
-                placeholder={speechSupported ? "Click record and speak your answer, or type it here..." : "Type your answer..."}
-                rows={5}
-                className="w-full rounded-xl border border-black/10 bg-base-soft/60 px-4 py-3 text-sm text-ink outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/20"
-              />
-
-              <div className="flex items-center gap-2">
-                {speechSupported && (
-                  <Button
-                    type="button"
-                    variant={isRecording ? "outline" : "primary"}
-                    onClick={isRecording ? stopRecording : startRecording}
-                  >
-                    {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
-                    {isRecording ? "Stop recording" : "Record answer"}
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={handleSubmitAnswer}
-                  disabled={!transcript.trim()}
-                  className={speechSupported ? "" : "w-fit"}
+            {currentQuestion && !isFetchingQuestion && (
+              <>
+                <div
+                  className={cn(
+                    "flex items-start gap-2 rounded-xl border p-4 transition-colors",
+                    isSpeaking ? "border-accent/30 bg-accent/5" : "border-black/10 bg-base-soft/60",
+                  )}
                 >
-                  {history.length + 1 === QUESTION_COUNT ? "Finish interview" : "Submit answer"}
-                </Button>
-              </div>
-            </>
-          )}
+                  <Volume2
+                    size={16}
+                    className={cn("mt-0.5 shrink-0", isSpeaking ? "text-accent" : "text-accent-soft")}
+                  />
+                  <p className="text-sm font-medium text-ink">{currentQuestion}</p>
+                </div>
 
-          {error && <p className="text-sm text-danger">{error}</p>}
-        </Card>
+                <textarea
+                  value={transcript}
+                  onChange={(e) => setTranscript(e.target.value)}
+                  placeholder={speechSupported ? "Click record and speak your answer, or type it here..." : "Type your answer..."}
+                  rows={5}
+                  className="w-full rounded-xl border border-black/10 bg-base-soft/60 px-4 py-3 text-sm text-ink outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/20"
+                />
+
+                <div className="flex items-center gap-2">
+                  {speechSupported && (
+                    <Button
+                      type="button"
+                      variant={isRecording ? "outline" : "primary"}
+                      onClick={isRecording ? stopRecording : startRecording}
+                    >
+                      {isRecording ? <MicOff size={16} /> : <Mic size={16} />}
+                      {isRecording ? "Stop recording" : "Record answer"}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={handleSubmitAnswer}
+                    disabled={!transcript.trim()}
+                    className={speechSupported ? "" : "w-fit"}
+                  >
+                    {history.length + 1 === QUESTION_COUNT ? "Finish interview" : "Submit answer"}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {error && <p className="text-sm text-danger">{error}</p>}
+          </Card>
+        </div>
       )}
 
       {stage === "feedback" && (
