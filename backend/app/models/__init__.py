@@ -20,6 +20,7 @@ from app.models.coding import CodingProblem, CodingTestCase, CodingSubmission
 from app.models.job import JobPosting
 from app.models.competition import CompetitionRoom, CompetitionParticipant, CompetitionAnswer, CompetitionStatus
 from app.models.git_learn import GitLevelProgress
+from app.models.docker_learn import DockerLevelProgress
 
 __all__ = [
     "User",
@@ -53,4 +54,5 @@ __all__ = [
     "CompetitionAnswer",
     "CompetitionStatus",
     "GitLevelProgress",
+    "DockerLevelProgress",
 ]

@@ -11,6 +11,7 @@ from app.routers import (
     coding,
     competitions,
     discussions,
+    docker_learn,
     exams,
     git_learn,
     jobs,
@@ -51,6 +52,7 @@ app.include_router(coding.router)
 app.include_router(jobs.router)
 app.include_router(competitions.router)
 app.include_router(git_learn.router)
+app.include_router(docker_learn.router)
 
 
 @app.get("/health")

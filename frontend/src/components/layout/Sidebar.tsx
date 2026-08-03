@@ -27,7 +27,7 @@ const navLinks = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/subjects", label: "Subjects", icon: BookOpen },
   { to: "/coding", label: "Coding practice", icon: Code2 },
-  { to: "/git-learn", label: "Git & GitHub", icon: GitBranch },
+  { to: "/dev-practice", label: "Git & Docker", icon: GitBranch },
   { to: "/mock-interview", label: "Mock interview", icon: Mic },
   { to: "/jobs", label: "Off-campus jobs", icon: Briefcase },
   { to: "/competitions", label: "Live competition", icon: Swords },
