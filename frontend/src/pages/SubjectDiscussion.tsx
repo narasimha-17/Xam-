@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Flame, Lock, MessageCircle, Plus, Sparkles, TrendingUp } from "lucide-react";
+import { ArrowLeft, Flame, Image as ImageIcon, Lock, MessageCircle, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { fetchSubject } from "../lib/subjects";
 import { createThread, fetchThreads } from "../lib/discussions";
 import type { DiscussionThread } from "../types/api";
@@ -67,13 +67,16 @@ export function SubjectDiscussion() {
   const sortedThreads = useMemo(() => sortThreads(threads ?? [], sortMode), [threads, sortMode]);
 
   const { register, handleSubmit, reset, formState } = useForm<ThreadFormValues>();
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const createMutation = useMutation({
-    mutationFn: (values: ThreadFormValues) => createThread(subjectId, values.title, values.body),
+    mutationFn: (values: ThreadFormValues) =>
+      createThread(subjectId, values.title, values.body, imageInputRef.current?.files?.[0] ?? null),
     onSuccess: (thread) => {
       queryClient.invalidateQueries({ queryKey: ["discussions", subjectId] });
       setModalOpen(false);
       reset();
+      if (imageInputRef.current) imageInputRef.current.value = "";
       navigate(`/subjects/${subjectId}/discussion/${thread.id}`);
     },
   });
@@ -151,6 +154,17 @@ export function SubjectDiscussion() {
             placeholder="Describe what you're stuck on..."
             {...register("body", { required: true })}
           />
+          <div className="flex flex-col gap-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted">
+              <ImageIcon size={13} /> Photo (optional)
+            </label>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="rounded-xl border border-black/10 bg-base-soft/60 px-4 py-2.5 text-sm text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-accent/20 file:px-3 file:py-1.5 file:text-accent-soft"
+            />
+          </div>
           <Button type="submit" isLoading={createMutation.isPending} disabled={!formState.isValid} className="w-full">
             Post thread
           </Button>

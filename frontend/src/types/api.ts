@@ -495,6 +495,7 @@ export interface DiscussionPost {
   author_name: string;
   body: string;
   parent_post_id: number | null;
+  image_url: string | null;
   created_at: string;
 }
 

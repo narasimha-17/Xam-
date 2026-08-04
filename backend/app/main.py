@@ -28,6 +28,7 @@ from app.routers import (
 )
 
 os.makedirs(settings.upload_dir, exist_ok=True)
+os.makedirs(settings.discussion_image_dir, exist_ok=True)
 
 app = FastAPI(title="Engineering Practice LMS API")
 

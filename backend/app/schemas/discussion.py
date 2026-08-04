@@ -3,18 +3,6 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class ThreadCreate(BaseModel):
-    subject_id: int
-    topic_id: int | None = None
-    title: str
-    body: str
-
-
-class PostCreate(BaseModel):
-    body: str
-    parent_post_id: int | None = None
-
-
 class PostOut(BaseModel):
     id: int
     thread_id: int
@@ -22,6 +10,7 @@ class PostOut(BaseModel):
     author_name: str
     body: str
     parent_post_id: int | None
+    image_url: str | None
     created_at: datetime
 
 

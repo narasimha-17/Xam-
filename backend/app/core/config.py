@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60 * 24
 
     upload_dir: str = "uploads/pdfs"
+    discussion_image_dir: str = "uploads/discussion_images"
     cors_origins: str = "http://localhost:5173"
     frontend_url: str = "http://localhost:5173"
 

@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Lock, LockOpen, Send, Trash2 } from "lucide-react";
+import { ArrowLeft, Image as ImageIcon, Lock, LockOpen, Send, Trash2 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { createPost, deletePost, fetchThread, setThreadLocked } from "../lib/discussions";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Loader } from "../components/ui/Loader";
+import { PostImage } from "../components/discussion/PostImage";
 
 export function ThreadDetail() {
   const { id, threadId } = useParams<{ id: string; threadId: string }>();
@@ -15,6 +16,7 @@ export function ThreadDetail() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [reply, setReply] = useState("");
+  const replyImageInputRef = useRef<HTMLInputElement>(null);
 
   const { data: thread, isLoading } = useQuery({
     queryKey: ["thread", threadIdNum],
@@ -23,10 +25,11 @@ export function ThreadDetail() {
   });
 
   const replyMutation = useMutation({
-    mutationFn: () => createPost(threadIdNum, reply),
+    mutationFn: () => createPost(threadIdNum, reply, undefined, replyImageInputRef.current?.files?.[0] ?? null),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["thread", threadIdNum] });
       setReply("");
+      if (replyImageInputRef.current) replyImageInputRef.current.value = "";
     },
   });
 
@@ -103,6 +106,7 @@ export function ThreadDetail() {
               )}
             </div>
             <p className="whitespace-pre-wrap text-sm text-ink-muted">{post.body}</p>
+            {post.image_url && <PostImage postId={post.id} />}
           </Card>
         ))}
       </div>
@@ -120,6 +124,17 @@ export function ThreadDetail() {
             rows={3}
             className="w-full rounded-xl border border-black/10 bg-base-soft/60 px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint outline-none focus:border-accent/60 focus:ring-2 focus:ring-accent/20"
           />
+          <div className="flex flex-col gap-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted">
+              <ImageIcon size={13} /> Photo (optional)
+            </label>
+            <input
+              ref={replyImageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="rounded-xl border border-black/10 bg-base-soft/60 px-4 py-2.5 text-sm text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-accent/20 file:px-3 file:py-1.5 file:text-accent-soft"
+            />
+          </div>
           <Button
             className="w-fit"
             disabled={!reply.trim()}

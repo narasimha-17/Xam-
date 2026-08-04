@@ -1,17 +1,45 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+import uuid
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import settings
 from app.core.deps import get_current_user, require_admin
 from app.db.session import get_db
 from app.models.discussion import DiscussionPost, DiscussionThread
 from app.models.subject import Subject
 from app.models.user import User, UserRole
-from app.schemas.discussion import PostCreate, PostOut, ThreadCreate, ThreadDetailOut, ThreadLockUpdate, ThreadOut
+from app.schemas.discussion import PostOut, ThreadDetailOut, ThreadLockUpdate, ThreadOut
 from app.services.activity_log import log_admin_action
 
 router = APIRouter(prefix="/discussions", tags=["discussions"])
+
+MAX_IMAGE_SIZE = 8 * 1024 * 1024  # 8 MB
+IMAGE_EXTENSION_BY_CONTENT_TYPE = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/gif": ".gif",
+    "image/webp": ".webp",
+}
+
+
+async def _save_image(file: UploadFile) -> str:
+    ext = IMAGE_EXTENSION_BY_CONTENT_TYPE.get(file.content_type or "")
+    if not ext:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only JPEG/PNG/GIF/WEBP images are allowed")
+    contents = await file.read()
+    if len(contents) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Image exceeds 8MB limit")
+    os.makedirs(settings.discussion_image_dir, exist_ok=True)
+    stored_name = f"{uuid.uuid4().hex}{ext}"
+    file_path = os.path.join(settings.discussion_image_dir, stored_name)
+    with open(file_path, "wb") as f:
+        f.write(contents)
+    return file_path
 
 
 def _thread_out(thread: DiscussionThread) -> ThreadOut:
@@ -40,6 +68,7 @@ def _post_out(post: DiscussionPost) -> PostOut:
         author_name=post.author.full_name,
         body=post.body,
         parent_post_id=post.parent_post_id,
+        image_url=f"/discussions/posts/{post.id}/image" if post.image_path else None,
         created_at=post.created_at,
     )
 
@@ -65,17 +94,26 @@ async def list_threads(
 
 
 @router.post("", response_model=ThreadDetailOut, status_code=status.HTTP_201_CREATED)
-async def create_thread(payload: ThreadCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
-    subject = await db.get(Subject, payload.subject_id)
+async def create_thread(
+    subject_id: int = Form(...),
+    topic_id: int | None = Form(None),
+    title: str = Form(...),
+    body: str = Form(...),
+    image: UploadFile | None = File(None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    subject = await db.get(Subject, subject_id)
     if subject is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found")
 
+    image_path = await _save_image(image) if image is not None else None
     thread = DiscussionThread(
-        subject_id=payload.subject_id,
-        topic_id=payload.topic_id,
-        title=payload.title,
+        subject_id=subject_id,
+        topic_id=topic_id,
+        title=title,
         created_by=user.id,
-        posts=[DiscussionPost(user_id=user.id, body=payload.body)],
+        posts=[DiscussionPost(user_id=user.id, body=body, image_path=image_path)],
     )
     db.add(thread)
     await db.commit()
@@ -105,13 +143,19 @@ async def get_thread(thread_id: int, db: AsyncSession = Depends(get_db), _: User
 
 @router.post("/{thread_id}/posts", response_model=PostOut, status_code=status.HTTP_201_CREATED)
 async def create_post(
-    thread_id: int, payload: PostCreate, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+    thread_id: int,
+    body: str = Form(...),
+    parent_post_id: int | None = Form(None),
+    image: UploadFile | None = File(None),
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
 ):
     thread = await _get_thread_or_404(thread_id, db)
     if thread.is_locked:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This thread is locked")
+    image_path = await _save_image(image) if image is not None else None
     post = DiscussionPost(
-        thread_id=thread_id, user_id=user.id, body=payload.body, parent_post_id=payload.parent_post_id
+        thread_id=thread_id, user_id=user.id, body=body, parent_post_id=parent_post_id, image_path=image_path
     )
     db.add(post)
     await db.commit()
@@ -119,6 +163,14 @@ async def create_post(
         select(DiscussionPost).where(DiscussionPost.id == post.id).options(selectinload(DiscussionPost.author))
     )
     return _post_out(result.one())
+
+
+@router.get("/posts/{post_id}/image")
+async def get_post_image(post_id: int, db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
+    post = await db.get(DiscussionPost, post_id)
+    if post is None or not post.image_path or not os.path.exists(post.image_path):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Image not found")
+    return FileResponse(post.image_path)
 
 
 @router.patch("/{thread_id}/lock", response_model=ThreadOut)
@@ -157,5 +209,7 @@ async def delete_post(post_id: int, db: AsyncSession = Depends(get_db), user: Us
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your post")
     if user.role == UserRole.admin and post.user_id != user.id:
         await log_admin_action(db, user.id, "delete_post", "discussion_post", post_id)
+    if post.image_path and os.path.exists(post.image_path):
+        os.remove(post.image_path)
     await db.delete(post)
     await db.commit()
