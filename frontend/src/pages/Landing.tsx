@@ -14,6 +14,36 @@ const FOUNDERS = [
   { name: "Manas Chintalapudi", role: "Co-Founder", color: "#e8a23d" },
 ];
 
+const FOOTER_COLUMNS: { heading: string; links: { label: string; to: string }[] }[] = [
+  {
+    heading: "Practice",
+    links: [
+      { label: "Subjects", to: "/subjects" },
+      { label: "Coding practice", to: "/coding" },
+      { label: "Dev Practice", to: "/dev-practice" },
+      { label: "Mock interview", to: "/mock-interview" },
+      { label: "Company Interview Bank", to: "/companies" },
+    ],
+  },
+  {
+    heading: "Community",
+    links: [
+      { label: "Xipe Community", to: "/discussion" },
+      { label: "Daily puzzle", to: "/puzzle" },
+      { label: "Live competition", to: "/competitions" },
+      { label: "Progress", to: "/progress" },
+    ],
+  },
+  {
+    heading: "Account",
+    links: [
+      { label: "Sign in", to: "/login" },
+      { label: "Create account", to: "/register" },
+      { label: "Study planner", to: "/planner" },
+    ],
+  },
+];
+
 const SAMPLE_REVIEWS = [
   {
     rating: 5,
@@ -259,8 +289,36 @@ export function Landing() {
         </section>
       </main>
 
-      <footer className="mx-auto max-w-6xl px-6 py-10 text-center text-xs text-ink-faint">
-        <Logo className="mb-3 justify-center text-base" />© {new Date().getFullYear()} Xam+
+      <footer className="border-t border-black/10">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-col gap-3">
+            <Logo className="text-base" />
+            <p className="max-w-xs text-sm text-ink-muted">
+              Timed exams, coding problems, study PDFs, peer discussion, and progress tracking — all in one place
+              built for engineering students.
+            </p>
+          </div>
+
+          {FOOTER_COLUMNS.map(({ heading, links }) => (
+            <div key={heading} className="flex flex-col gap-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-ink-faint">{heading}</h3>
+              <ul className="flex flex-col gap-2">
+                {links.map(({ label, to }) => (
+                  <li key={to}>
+                    <Link to={to} className="text-sm text-ink-muted hover:text-ink">
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-black/10 px-6 py-6 text-xs text-ink-faint sm:flex-row">
+          <p>© {new Date().getFullYear()} Xam+. All rights reserved.</p>
+          <p>Built by Narasimha &amp; Manas Chintalapudi</p>
+        </div>
       </footer>
     </div>
   );
