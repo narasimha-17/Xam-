@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Flame, Lightbulb, Puzzle as PuzzleIcon, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, Flame, Lightbulb, Puzzle as PuzzleIcon, XCircle } from "lucide-react";
 import { attemptTodayPuzzle, fetchPuzzleStreak, fetchTodayPuzzle } from "../lib/puzzles";
 import type { PuzzleTodayItem } from "../types/api";
 import { Card } from "../components/ui/Card";
@@ -8,7 +8,17 @@ import { Button } from "../components/ui/Button";
 import { FullPageLoader } from "../components/ui/Loader";
 import { cn } from "../lib/utils";
 
-function PuzzleCard({ puzzle, index }: { puzzle: PuzzleTodayItem; index: number }) {
+function PuzzleCard({
+  puzzle,
+  index,
+  isLast,
+  onContinue,
+}: {
+  puzzle: PuzzleTodayItem;
+  index: number;
+  isLast: boolean;
+  onContinue: () => void;
+}) {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -103,6 +113,12 @@ function PuzzleCard({ puzzle, index }: { puzzle: PuzzleTodayItem; index: number 
           <p>{puzzle.explanation}</p>
         </div>
       )}
+
+      {solved && !isLast && (
+        <Button onClick={onContinue} className="w-full">
+          Next puzzle <ArrowRight size={16} />
+        </Button>
+      )}
     </Card>
   );
 }
@@ -117,6 +133,16 @@ export function DailyPuzzle() {
     queryKey: ["puzzle-streak"],
     queryFn: fetchPuzzleStreak,
   });
+
+  const [viewIndex, setViewIndex] = useState(0);
+  const hasInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!today || hasInitialized.current) return;
+    const firstUnsolved = today.puzzles.findIndex((p) => !p.already_solved);
+    setViewIndex(firstUnsolved === -1 ? today.puzzles.length - 1 : firstUnsolved);
+    hasInitialized.current = true;
+  }, [today]);
 
   if (isLoading) {
     return <FullPageLoader label="Loading today's puzzles..." />;
@@ -139,6 +165,8 @@ export function DailyPuzzle() {
   }
 
   const allSolvedToday = today.solved_count >= today.required_count;
+  const activePuzzle = today.puzzles[viewIndex];
+  const isLastCard = viewIndex === today.puzzles.length - 1;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -165,11 +193,16 @@ export function DailyPuzzle() {
       </div>
 
       <div className="flex items-center gap-3 rounded-xl border border-black/10 bg-base-soft/40 p-4">
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/10">
-          <div
-            className={cn("h-full rounded-full transition-all", allSolvedToday ? "bg-success" : "bg-accent")}
-            style={{ width: `${(today.solved_count / today.required_count) * 100}%` }}
-          />
+        <div className="flex flex-1 items-center gap-1.5">
+          {today.puzzles.map((p, i) => (
+            <div
+              key={p.id}
+              className={cn(
+                "h-2 flex-1 rounded-full transition-colors",
+                p.already_solved ? (p.is_correct ? "bg-success" : "bg-danger") : i === viewIndex ? "bg-accent" : "bg-black/10",
+              )}
+            />
+          ))}
         </div>
         <span className="shrink-0 text-sm font-medium text-ink">
           {today.solved_count} / {today.required_count} solved today
@@ -182,10 +215,22 @@ export function DailyPuzzle() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4">
-        {today.puzzles.map((puzzle, i) => (
-          <PuzzleCard key={puzzle.id} puzzle={puzzle} index={i} />
-        ))}
+      <div className="relative">
+        {viewIndex + 1 < today.puzzles.length && (
+          <div className="absolute inset-x-3 top-3 h-full rounded-2xl border border-black/10 bg-base-panel/70" />
+        )}
+        {viewIndex + 2 < today.puzzles.length && (
+          <div className="absolute inset-x-6 top-6 h-full rounded-2xl border border-black/10 bg-base-panel/40" />
+        )}
+        <div className="relative">
+          <PuzzleCard
+            key={activePuzzle.id}
+            puzzle={activePuzzle}
+            index={viewIndex}
+            isLast={isLastCard}
+            onContinue={() => setViewIndex((i) => Math.min(i + 1, today.puzzles.length - 1))}
+          />
+        </div>
       </div>
 
       {streak && streak.total_solved > 0 && (
