@@ -6,8 +6,9 @@ export async function fetchTodayPuzzle(): Promise<PuzzleToday> {
   return data;
 }
 
-export async function attemptTodayPuzzle(selectedIndex: number): Promise<PuzzleAttemptResult> {
+export async function attemptTodayPuzzle(puzzleId: number, selectedIndex: number): Promise<PuzzleAttemptResult> {
   const { data } = await api.post<PuzzleAttemptResult>("/puzzles/today/attempt", {
+    puzzle_id: puzzleId,
     selected_index: selectedIndex,
   });
   return data;

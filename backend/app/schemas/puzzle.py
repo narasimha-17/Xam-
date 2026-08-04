@@ -23,7 +23,7 @@ class PuzzleAdminOut(BaseModel):
     created_at: datetime
 
 
-class PuzzleTodayOut(BaseModel):
+class PuzzleTodayItem(BaseModel):
     id: int
     question_text: str
     options: list[str]
@@ -36,7 +36,14 @@ class PuzzleTodayOut(BaseModel):
     explanation: str | None = None
 
 
+class PuzzleTodayOut(BaseModel):
+    puzzles: list[PuzzleTodayItem]
+    solved_count: int
+    required_count: int
+
+
 class PuzzleAttemptIn(BaseModel):
+    puzzle_id: int
     selected_index: int
 
 
@@ -44,6 +51,9 @@ class PuzzleAttemptResult(BaseModel):
     is_correct: bool
     correct_index: int
     explanation: str | None
+    solved_count: int
+    required_count: int
+    streak_earned_today: bool
     current_streak: int
     longest_streak: int
 

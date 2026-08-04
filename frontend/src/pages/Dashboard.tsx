@@ -49,6 +49,7 @@ function StudentDashboard() {
     queryKey: ["puzzle-today"],
     queryFn: fetchTodayPuzzle,
   });
+  const allPuzzlesSolved = !!todayPuzzle && todayPuzzle.solved_count >= todayPuzzle.required_count;
   const { data: puzzleStreak } = useQuery({
     queryKey: ["puzzle-streak"],
     queryFn: fetchPuzzleStreak,
@@ -110,12 +111,14 @@ function StudentDashboard() {
           </div>
           <div>
             <h2 className="font-display text-lg font-semibold text-ink">
-              {todayPuzzle?.already_solved ? "Today's puzzle is done" : "Today's brain teaser"}
+              {allPuzzlesSolved ? "Today's puzzles are done" : "Today's brain teasers"}
             </h2>
             <p className="mt-1 text-sm text-ink-muted">
-              {todayPuzzle?.already_solved
-                ? "Nice work — come back tomorrow for a new one."
-                : "A quick logic puzzle to sharpen your thinking, no grade attached."}
+              {todayPuzzle
+                ? allPuzzlesSolved
+                  ? "Nice work — come back tomorrow for a new set."
+                  : `${todayPuzzle.solved_count} of ${todayPuzzle.required_count} solved — finish them all to keep your streak.`
+                : "A quick set of logic puzzles to sharpen your thinking, no grade attached."}
             </p>
           </div>
         </div>
@@ -127,8 +130,8 @@ function StudentDashboard() {
             </div>
           )}
           <Link to="/puzzle">
-            <Button variant={todayPuzzle?.already_solved ? "outline" : "primary"}>
-              {todayPuzzle?.already_solved ? "View result" : "Solve it"}
+            <Button variant={allPuzzlesSolved ? "outline" : "primary"}>
+              {allPuzzlesSolved ? "View results" : "Solve them"}
             </Button>
           </Link>
         </div>

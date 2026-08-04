@@ -651,7 +651,7 @@ export interface PlatformStats {
 
 // ---------- Daily puzzles ----------
 
-export interface PuzzleToday {
+export interface PuzzleTodayItem {
   id: number;
   question_text: string;
   options: string[];
@@ -663,10 +663,19 @@ export interface PuzzleToday {
   explanation: string | null;
 }
 
+export interface PuzzleToday {
+  puzzles: PuzzleTodayItem[];
+  solved_count: number;
+  required_count: number;
+}
+
 export interface PuzzleAttemptResult {
   is_correct: boolean;
   correct_index: number;
   explanation: string | null;
+  solved_count: number;
+  required_count: number;
+  streak_earned_today: boolean;
   current_streak: number;
   longest_streak: number;
 }

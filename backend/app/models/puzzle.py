@@ -22,7 +22,9 @@ class Puzzle(Base):
 
 class PuzzleAttempt(Base):
     __tablename__ = "puzzle_attempts"
-    __table_args__ = (UniqueConstraint("user_id", "solved_for_date", name="uq_puzzle_attempt_user_date"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "puzzle_id", "solved_for_date", name="uq_puzzle_attempt_user_puzzle_date"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
