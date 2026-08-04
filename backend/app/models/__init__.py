@@ -21,6 +21,7 @@ from app.models.job import JobPosting
 from app.models.competition import CompetitionRoom, CompetitionParticipant, CompetitionAnswer, CompetitionStatus
 from app.models.git_learn import GitLevelProgress
 from app.models.docker_learn import DockerLevelProgress
+from app.models.sql_learn import SqlLevelProgress
 
 __all__ = [
     "User",
@@ -55,4 +56,5 @@ __all__ = [
     "CompetitionStatus",
     "GitLevelProgress",
     "DockerLevelProgress",
+    "SqlLevelProgress",
 ]

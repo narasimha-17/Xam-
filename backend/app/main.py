@@ -20,6 +20,7 @@ from app.routers import (
     proctoring,
     progress,
     puzzles,
+    sql_learn,
     subjects,
     users,
 )
@@ -53,6 +54,7 @@ app.include_router(jobs.router)
 app.include_router(competitions.router)
 app.include_router(git_learn.router)
 app.include_router(docker_learn.router)
+app.include_router(sql_learn.router)
 
 
 @app.get("/health")

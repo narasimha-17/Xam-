@@ -1,14 +1,16 @@
 import { useState } from "react";
-import { Container, GitBranch } from "lucide-react";
+import { Container, Database, GitBranch } from "lucide-react";
 import { GitLearn } from "./GitLearn";
 import { DockerLearn } from "./DockerLearn";
+import { SqlLearn } from "./SqlLearn";
 import { cn } from "../lib/utils";
 
-type Tab = "git" | "docker";
+type Tab = "git" | "docker" | "sql";
 
 const TABS: { id: Tab; label: string; icon: typeof GitBranch }[] = [
   { id: "git", label: "Git & GitHub", icon: GitBranch },
   { id: "docker", label: "Docker", icon: Container },
+  { id: "sql", label: "SQL", icon: Database },
 ];
 
 export function DevPractice() {
@@ -32,7 +34,7 @@ export function DevPractice() {
         ))}
       </div>
 
-      {tab === "git" ? <GitLearn /> : <DockerLearn />}
+      {tab === "git" ? <GitLearn /> : tab === "docker" ? <DockerLearn /> : <SqlLearn />}
     </div>
   );
 }
