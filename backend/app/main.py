@@ -24,6 +24,7 @@ from app.routers import (
     progress,
     puzzles,
     sql_learn,
+    study_events,
     subjects,
     users,
 )
@@ -62,6 +63,7 @@ app.include_router(docker_learn.router)
 app.include_router(sql_learn.router)
 app.include_router(k8s_learn.router)
 app.include_router(os_learn.router)
+app.include_router(study_events.router)
 
 
 @app.get("/health")

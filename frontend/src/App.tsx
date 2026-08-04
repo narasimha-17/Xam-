@@ -23,6 +23,7 @@ import { Discussion } from "./pages/Discussion";
 import { SubjectDiscussion } from "./pages/SubjectDiscussion";
 import { ThreadDetail } from "./pages/ThreadDetail";
 import { Progress } from "./pages/Progress";
+import { StudyPlanner } from "./pages/StudyPlanner";
 import { DailyPuzzle } from "./pages/DailyPuzzle";
 import { CodingPractice } from "./pages/CodingPractice";
 import { CodingProblemSolve } from "./pages/CodingProblemSolve";
@@ -168,6 +169,16 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <Progress />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/planner"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <StudyPlanner />
                 </AppShell>
               </ProtectedRoute>
             }

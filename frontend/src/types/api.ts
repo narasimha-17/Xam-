@@ -935,3 +935,23 @@ export interface CompanyTechnicalInput {
   key_points: string[];
   order?: number;
 }
+
+// ---------- Study planner ----------
+
+export interface StudyEvent {
+  id: number;
+  title: string;
+  subject_id: number | null;
+  subject_name: string | null;
+  event_date: string;
+  start_time: string | null;
+  notes: string | null;
+}
+
+export interface StudyEventInput {
+  title: string;
+  subject_id?: number | null;
+  event_date: string;
+  start_time?: string | null;
+  notes?: string | null;
+}

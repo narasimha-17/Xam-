@@ -4,6 +4,7 @@ import {
   BookOpen,
   Briefcase,
   Building2,
+  CalendarDays,
   Code2,
   Flag,
   GitBranch,
@@ -34,6 +35,7 @@ const navLinks = [
   { to: "/jobs", label: "Off-campus jobs", icon: Briefcase },
   { to: "/competitions", label: "Live competition", icon: Swords },
   { to: "/progress", label: "Progress", icon: TrendingUp },
+  { to: "/planner", label: "Study planner", icon: CalendarDays },
   { to: "/puzzle", label: "Daily puzzle", icon: Puzzle },
   { to: "/discussion", label: "Xipe Community", icon: MessagesSquare },
 ];
