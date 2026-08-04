@@ -53,6 +53,7 @@ class ExamCreate(BaseModel):
     duration_minutes: int = 30
     available_from: datetime | None = None
     available_until: datetime | None = None
+    questions_to_serve: int | None = None
     questions: list[QuestionIn] = []
 
 
@@ -139,6 +140,7 @@ class ExamAdminOut(BaseModel):
     title: str
     description: str | None
     duration_minutes: int
+    questions_to_serve: int | None
     is_published: bool
     available_from: datetime | None
     available_until: datetime | None
@@ -157,6 +159,7 @@ class ExamSummaryOut(BaseModel):
     title: str
     description: str | None
     duration_minutes: int
+    questions_to_serve: int | None
     is_published: bool
     available_from: datetime | None
     available_until: datetime | None
@@ -204,6 +207,7 @@ class ExamSafeOut(BaseModel):
     title: str
     description: str | None
     duration_minutes: int
+    questions_to_serve: int | None = None
     is_published: bool
     questions: list[QuestionSafeOut] = []
 

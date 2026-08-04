@@ -25,8 +25,10 @@ export async function fetchExams(subjectId?: number): Promise<ExamSummary[]> {
   return data;
 }
 
-export async function fetchExamForStudent(id: number): Promise<ExamSafe> {
-  const { data } = await api.get<ExamSafe>(`/exams/${id}`);
+export async function fetchExamForStudent(id: number, attemptId?: number): Promise<ExamSafe> {
+  const { data } = await api.get<ExamSafe>(`/exams/${id}`, {
+    params: attemptId ? { attempt_id: attemptId } : undefined,
+  });
   return data;
 }
 

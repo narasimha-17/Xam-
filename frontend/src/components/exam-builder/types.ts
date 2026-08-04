@@ -24,6 +24,7 @@ export interface ExamFormValues {
   duration_minutes: number;
   available_from: string;
   available_until: string;
+  questions_to_serve: string;
   questions: QuestionFormValues[];
 }
 
@@ -76,6 +77,7 @@ export function toCreatePayload(values: ExamFormValues, subjectId: number) {
     duration_minutes: Number(values.duration_minutes),
     available_from: values.available_from ? new Date(values.available_from).toISOString() : null,
     available_until: values.available_until ? new Date(values.available_until).toISOString() : null,
+    questions_to_serve: values.questions_to_serve.trim() === "" ? null : Number(values.questions_to_serve),
     questions: values.questions.map((q, order) => ({
       type: q.type,
       question_text: q.question_text,

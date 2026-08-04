@@ -30,6 +30,7 @@ export function ExamBuilder() {
       duration_minutes: 30,
       available_from: "",
       available_until: "",
+      questions_to_serve: "",
       questions: [blankQuestion()],
     },
   });
@@ -82,6 +83,18 @@ export function ExamBuilder() {
               />
             </div>
             <p className="-mt-2 text-xs text-ink-faint">Leave both blank for an exam that's always open once published.</p>
+
+            <Input
+              label="Questions to serve per student (optional)"
+              type="number"
+              min="1"
+              placeholder={`Leave blank to serve all ${questionsArray.fields.length} written questions`}
+              {...register("questions_to_serve", { min: 1 })}
+            />
+            <p className="-mt-2 text-xs text-ink-faint">
+              Write more questions than this number to give each student a random subset in a random order — useful
+              so a room full of students isn't all looking at the same question set.
+            </p>
           </Card>
 
           <AiGeneratePanel

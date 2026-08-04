@@ -59,6 +59,7 @@ export interface ExamSummary {
   title: string;
   description: string | null;
   duration_minutes: number;
+  questions_to_serve: number | null;
   is_published: boolean;
   available_from: string | null;
   available_until: string | null;
@@ -116,6 +117,7 @@ export interface ExamAdmin {
   title: string;
   description: string | null;
   duration_minutes: number;
+  questions_to_serve: number | null;
   is_published: boolean;
   available_from: string | null;
   available_until: string | null;
@@ -171,6 +173,7 @@ export interface ExamCreateInput {
   duration_minutes: number;
   available_from?: string | null;
   available_until?: string | null;
+  questions_to_serve?: number | null;
   questions: QuestionInput[];
 }
 
@@ -362,6 +365,7 @@ export interface ExamSafe {
   title: string;
   description: string | null;
   duration_minutes: number;
+  questions_to_serve: number | null;
   is_published: boolean;
   questions: QuestionSafe[];
 }

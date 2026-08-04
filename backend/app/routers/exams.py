@@ -144,7 +144,11 @@ def _to_safe_question(question: Question) -> QuestionSafeOut:
     )
 
 
-def _to_safe_exam(exam: Exam) -> ExamSafeOut:
+def _to_safe_exam(exam: Exam, served_question_ids: list[int] | None = None) -> ExamSafeOut:
+    questions = sorted(exam.questions, key=lambda q: q.order)
+    if served_question_ids is not None:
+        served_set = set(served_question_ids)
+        questions = [q for q in questions if q.id in served_set]
     return ExamSafeOut(
         id=exam.id,
         subject_id=exam.subject_id,
@@ -152,8 +156,9 @@ def _to_safe_exam(exam: Exam) -> ExamSafeOut:
         title=exam.title,
         description=exam.description,
         duration_minutes=exam.duration_minutes,
+        questions_to_serve=exam.questions_to_serve,
         is_published=exam.is_published,
-        questions=[_to_safe_question(q) for q in sorted(exam.questions, key=lambda q: q.order)],
+        questions=[_to_safe_question(q) for q in questions],
     )
 
 
@@ -196,6 +201,7 @@ async def list_exams(
             title=e.title,
             description=e.description,
             duration_minutes=e.duration_minutes,
+            questions_to_serve=e.questions_to_serve,
             is_published=e.is_published,
             available_from=e.available_from,
             available_until=e.available_until,
@@ -326,6 +332,7 @@ async def create_exam(payload: ExamCreate, db: AsyncSession = Depends(get_db), a
         duration_minutes=payload.duration_minutes,
         available_from=payload.available_from,
         available_until=payload.available_until,
+        questions_to_serve=payload.questions_to_serve,
         created_by=admin.id,
     )
     _apply_questions(exam, payload.questions)
@@ -345,13 +352,26 @@ async def _get_exam_or_404(exam_id: int, db: AsyncSession) -> Exam:
 
 
 @router.get("/{exam_id}")
-async def get_exam(exam_id: int, db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+async def get_exam(
+    exam_id: int,
+    attempt_id: int | None = None,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
     exam = await _get_exam_or_404(exam_id, db)
     if user.role == UserRole.admin:
         return ExamAdminOut.model_validate(exam)
     if not exam.is_published:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Exam is not published")
-    return _to_safe_exam(exam)
+
+    served_question_ids = None
+    if attempt_id is not None:
+        attempt = await db.get(ExamAttempt, attempt_id)
+        if attempt is None or attempt.user_id != user.id or attempt.exam_id != exam_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not your attempt")
+        served_question_ids = attempt.question_ids
+
+    return _to_safe_exam(exam, served_question_ids)
 
 
 @router.put("/{exam_id}", response_model=ExamAdminOut)
@@ -366,6 +386,7 @@ async def replace_exam(
     exam.duration_minutes = payload.duration_minutes
     exam.available_from = payload.available_from
     exam.available_until = payload.available_until
+    exam.questions_to_serve = payload.questions_to_serve
     _apply_questions(exam, payload.questions)
     await db.commit()
     result = await db.scalars(select(Exam).where(Exam.id == exam_id).options(QUESTIONS_OPTIONS))
@@ -514,7 +535,16 @@ async def start_attempt(exam_id: int, db: AsyncSession = Depends(get_db), user: 
     if existing is not None:
         return _attempt_out(existing)
 
-    attempt = ExamAttempt(exam_id=exam_id, user_id=user.id, status=AttemptStatus.in_progress)
+    all_question_ids = [q.id for q in exam.questions]
+    if exam.questions_to_serve and exam.questions_to_serve < len(all_question_ids):
+        question_ids = random.sample(all_question_ids, exam.questions_to_serve)
+    else:
+        question_ids = list(all_question_ids)
+    random.shuffle(question_ids)
+
+    attempt = ExamAttempt(
+        exam_id=exam_id, user_id=user.id, status=AttemptStatus.in_progress, question_ids=question_ids
+    )
     db.add(attempt)
     await db.commit()
     await db.refresh(attempt)
@@ -705,7 +735,11 @@ async def submit_attempt(
     badges_before = {b.code for b in await get_user_badges(db, user.id) if b.earned}
 
     exam = await _get_exam_or_404(attempt.exam_id, db)
-    score, max_score, results = await grade_attempt(exam.questions, [a.model_dump() for a in payload.answers])
+    served_questions = exam.questions
+    if attempt.question_ids:
+        served_ids = set(attempt.question_ids)
+        served_questions = [q for q in exam.questions if q.id in served_ids]
+    score, max_score, results = await grade_attempt(served_questions, [a.model_dump() for a in payload.answers])
 
     attempt.score = score
     attempt.max_score = max_score

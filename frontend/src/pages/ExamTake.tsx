@@ -61,15 +61,17 @@ export function ExamTake() {
   const profileIncomplete =
     user?.role !== "admin" && !(user?.roll_number && user?.section && user?.department);
 
-  const { data: exam, isLoading: examLoading } = useQuery({
-    queryKey: ["exam-take", examId],
-    queryFn: () => fetchExamForStudent(examId),
-    enabled: !Number.isNaN(examId),
-  });
-
   const attemptMutation = useMutation({
     mutationFn: () => startAttempt(examId),
   });
+  const attemptId = attemptMutation.data?.id;
+
+  const { data: exam, isLoading: examLoading } = useQuery({
+    queryKey: ["exam-take", examId, attemptId],
+    queryFn: () => fetchExamForStudent(examId, attemptId),
+    enabled: !Number.isNaN(examId),
+  });
+
   const startedRef = useRef(false);
 
   const [examStarted, setExamStarted] = useState(false);
@@ -130,7 +132,6 @@ export function ExamTake() {
   }, []);
   const audioContextRef = useRef<AudioContext | null>(null);
   const micRafRef = useRef<number | null>(null);
-  const attemptId = attemptMutation.data?.id;
 
   const [violationWarning, setViolationWarning] = useState<string | null>(null);
   const warningTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -399,11 +400,17 @@ export function ExamTake() {
     );
   }, [attemptMutation.data, exam]);
 
-  // Seeded by attempt id so the order is randomized per attempt but stable
-  // across re-renders and page refreshes of the same in-progress attempt.
+  // Seeded by attempt id (and per-question for options) so both question and option order are
+  // randomized per attempt but stable across re-renders and page refreshes of the same attempt.
   const shuffledQuestions = useMemo(() => {
     if (!exam) return [];
-    return attemptId ? shuffleWithSeed(exam.questions, attemptId) : exam.questions;
+    if (!attemptId) return exam.questions;
+    const ordered = shuffleWithSeed(exam.questions, attemptId);
+    return ordered.map((q) =>
+      q.type === "mcq" || q.type === "maq"
+        ? { ...q, options: shuffleWithSeed(q.options, attemptId * 31 + q.id) }
+        : q,
+    );
   }, [exam, attemptId]);
 
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
@@ -485,7 +492,7 @@ export function ExamTake() {
                 {exam.title}
               </h1>
               <p className="text-sm text-ink-muted">
-                {exam.questions.length} questions · {exam.duration_minutes}{" "}
+                {exam.questions_to_serve ?? exam.questions.length} questions · {exam.duration_minutes}{" "}
                 minutes
               </p>
             </div>

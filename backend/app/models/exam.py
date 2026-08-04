@@ -30,6 +30,7 @@ class Exam(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     duration_minutes: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
+    questions_to_serve: Mapped[int | None] = mapped_column(Integer, nullable=True)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     available_from: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     available_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -155,6 +156,9 @@ class ExamAttempt(Base):
     )
     flagged_question_ids: Mapped[list[int] | None] = mapped_column(JSON, nullable=True)
     current_index: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # The specific (random subset + shuffled order) question ids served to this attempt.
+    # Null means "no pooling was configured" — grade against the exam's full question list, as before.
+    question_ids: Mapped[list[int] | None] = mapped_column(JSON, nullable=True)
 
     answers: Mapped[list["AttemptAnswer"]] = relationship(back_populates="attempt", cascade="all, delete-orphan")
 
