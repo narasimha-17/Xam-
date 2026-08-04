@@ -1,13 +1,33 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, Code2, FileText, MessagesSquare, TrendingUp, Zap } from "lucide-react";
+import { BookOpen, Code2, FileText, MessagesSquare, Star, TrendingUp, Zap } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Logo } from "../components/ui/Logo";
 import { HeroIllustration } from "../components/landing/HeroIllustration";
 
 const ROTATING_SUBJECTS = ["Data Structures", "Machine Learning", "Computer Networks", "DBMS", "Deep Learning"];
+
+const FOUNDERS = [
+  { name: "Narasimha", role: "Founder", color: "#1e3f66" },
+  { name: "Manas Chintalapudi", role: "Co-Founder", color: "#e8a23d" },
+];
+
+const SAMPLE_REVIEWS = [
+  {
+    rating: 5,
+    quote: "This platform helped me stay consistent with daily practice before my placement season.",
+  },
+  {
+    rating: 5,
+    quote: "The coding practice and AI mock interview combo is exactly what I needed for technical rounds.",
+  },
+  {
+    rating: 4,
+    quote: "The gamified Git and Docker practice made a boring topic actually fun to learn.",
+  },
+];
 
 const FEATURES = [
   {
@@ -169,6 +189,61 @@ export function Landing() {
                 <h3 className="font-display text-lg font-semibold text-ink">{title}</h3>
                 <p className="text-sm text-ink-muted">{description}</p>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="py-16">
+          <div className="mb-2 text-center">
+            <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">What students are saying</h2>
+            <p className="mt-2 text-xs uppercase tracking-wide text-ink-faint">
+              Sample reviews — real testimonials coming soon
+            </p>
+          </div>
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {SAMPLE_REVIEWS.map(({ rating, quote }, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.05 }}
+              >
+                <Card className="flex h-full flex-col gap-3">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star key={n} size={14} className={n <= rating ? "fill-warning text-warning" : "text-black/15"} />
+                    ))}
+                  </div>
+                  <p className="text-sm text-ink-muted">&ldquo;{quote}&rdquo;</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        <section className="py-16">
+          <div className="mb-10 text-center">
+            <h2 className="font-display text-2xl font-semibold text-ink sm:text-3xl">Built by</h2>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            {FOUNDERS.map(({ name, role, color }) => (
+              <Card key={name} className="flex w-full max-w-xs flex-col items-center gap-3 text-center">
+                <div
+                  className="flex h-14 w-14 items-center justify-center rounded-2xl font-display text-lg font-semibold text-white"
+                  style={{ backgroundColor: color }}
+                >
+                  {name
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-display text-base font-semibold text-ink">{name}</p>
+                  <p className="text-xs text-ink-faint">{role}</p>
+                </div>
+              </Card>
             ))}
           </div>
         </section>
