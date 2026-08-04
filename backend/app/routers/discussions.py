@@ -15,6 +15,8 @@ router = APIRouter(prefix="/discussions", tags=["discussions"])
 
 
 def _thread_out(thread: DiscussionThread) -> ThreadOut:
+    first_post = thread.posts[0] if thread.posts else None
+    last_activity_at = max((p.created_at for p in thread.posts), default=thread.created_at)
     return ThreadOut(
         id=thread.id,
         subject_id=thread.subject_id,
@@ -23,7 +25,9 @@ def _thread_out(thread: DiscussionThread) -> ThreadOut:
         created_by=thread.created_by,
         author_name=thread.creator.full_name,
         created_at=thread.created_at,
+        last_activity_at=last_activity_at,
         post_count=len(thread.posts),
+        preview=(first_post.body[:200] if first_post else ""),
         is_locked=thread.is_locked,
     )
 

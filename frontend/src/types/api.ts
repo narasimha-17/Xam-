@@ -506,7 +506,9 @@ export interface DiscussionThread {
   created_by: number;
   author_name: string;
   created_at: string;
+  last_activity_at: string;
   post_count: number;
+  preview: string;
   is_locked: boolean;
 }
 

@@ -33,7 +33,9 @@ class ThreadOut(BaseModel):
     created_by: int
     author_name: str
     created_at: datetime
+    last_activity_at: datetime
     post_count: int
+    preview: str
     is_locked: bool
 
 

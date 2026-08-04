@@ -33,7 +33,7 @@ const navLinks = [
   { to: "/competitions", label: "Live competition", icon: Swords },
   { to: "/progress", label: "Progress", icon: TrendingUp },
   { to: "/puzzle", label: "Daily puzzle", icon: Puzzle },
-  { to: "/discussion", label: "Discussion", icon: MessagesSquare },
+  { to: "/discussion", label: "Xipe Community", icon: MessagesSquare },
 ];
 
 const adminNavLinks = [

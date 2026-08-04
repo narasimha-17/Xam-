@@ -1,20 +1,47 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MessageCircle, Plus } from "lucide-react";
+import { ArrowLeft, Flame, Lock, MessageCircle, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { fetchSubject } from "../lib/subjects";
 import { createThread, fetchThreads } from "../lib/discussions";
+import type { DiscussionThread } from "../types/api";
 import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { Modal } from "../components/ui/Modal";
 import { Loader } from "../components/ui/Loader";
+import { cn, timeAgo } from "../lib/utils";
 
 interface ThreadFormValues {
   title: string;
   body: string;
+}
+
+type SortMode = "hot" | "new" | "top";
+
+const SORT_OPTIONS: { id: SortMode; label: string; icon: typeof Flame }[] = [
+  { id: "hot", label: "Hot", icon: Flame },
+  { id: "new", label: "New", icon: Sparkles },
+  { id: "top", label: "Top", icon: TrendingUp },
+];
+
+function hotScore(thread: DiscussionThread): number {
+  const hoursSinceActivity = (Date.now() - new Date(thread.last_activity_at).getTime()) / 3_600_000;
+  return thread.post_count / Math.pow(hoursSinceActivity + 2, 1.5);
+}
+
+function sortThreads(threads: DiscussionThread[], mode: SortMode): DiscussionThread[] {
+  const sorted = [...threads];
+  if (mode === "new") {
+    sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  } else if (mode === "top") {
+    sorted.sort((a, b) => b.post_count - a.post_count);
+  } else {
+    sorted.sort((a, b) => hotScore(b) - hotScore(a));
+  }
+  return sorted;
 }
 
 export function SubjectDiscussion() {
@@ -23,6 +50,7 @@ export function SubjectDiscussion() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
+  const [sortMode, setSortMode] = useState<SortMode>("hot");
 
   const { data: subject } = useQuery({
     queryKey: ["subject", subjectId],
@@ -35,6 +63,8 @@ export function SubjectDiscussion() {
     queryFn: () => fetchThreads(subjectId),
     enabled: !Number.isNaN(subjectId),
   });
+
+  const sortedThreads = useMemo(() => sortThreads(threads ?? [], sortMode), [threads, sortMode]);
 
   const { register, handleSubmit, reset, formState } = useForm<ThreadFormValues>();
 
@@ -56,12 +86,29 @@ export function SubjectDiscussion() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">{subject?.name ?? "Discussion"}</h1>
+          <p className="text-xs font-medium uppercase tracking-wide text-accent-soft">Xipe Community</p>
+          <h1 className="mt-0.5 font-display text-2xl font-semibold text-ink">{subject?.name ?? "Discussion"}</h1>
           <p className="mt-1 text-sm text-ink-muted">Ask questions and help fellow students.</p>
         </div>
         <Button onClick={() => setModalOpen(true)}>
           <Plus size={16} /> New thread
         </Button>
+      </div>
+
+      <div className="flex gap-1 rounded-xl border border-black/10 bg-base-soft/50 p-1 w-fit">
+        {SORT_OPTIONS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => setSortMode(id)}
+            className={cn(
+              "flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors",
+              sortMode === id ? "bg-base-panel text-ink shadow-glow" : "text-ink-muted hover:text-ink",
+            )}
+          >
+            <Icon size={14} className="text-accent-soft" />
+            {label}
+          </button>
+        ))}
       </div>
 
       {isLoading && <Loader className="py-16" label="Loading threads..." />}
@@ -70,17 +117,25 @@ export function SubjectDiscussion() {
       )}
 
       <div className="flex flex-col gap-3">
-        {threads?.map((thread) => (
+        {sortedThreads.map((thread) => (
           <Link key={thread.id} to={`/subjects/${subjectId}/discussion/${thread.id}`}>
-            <Card className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-ink">{thread.title}</p>
-                <p className="mt-0.5 text-xs text-ink-faint">
-                  by {thread.author_name} · {new Date(thread.created_at).toLocaleDateString()}
-                </p>
+            <Card className="flex items-start gap-4 p-4">
+              <div className="flex shrink-0 flex-col items-center justify-center rounded-xl bg-accent/10 px-3 py-2 text-accent">
+                <MessageCircle size={16} />
+                <span className="mt-0.5 text-sm font-semibold">{Math.max(thread.post_count - 1, 0)}</span>
               </div>
-              <div className="flex shrink-0 items-center gap-1.5 text-xs text-ink-faint">
-                <MessageCircle size={14} /> {thread.post_count}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  {thread.is_locked && <Lock size={13} className="shrink-0 text-ink-faint" />}
+                  <p className="truncate text-sm font-semibold text-ink">{thread.title}</p>
+                </div>
+                {thread.preview && (
+                  <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{thread.preview}</p>
+                )}
+                <p className="mt-1.5 text-xs text-ink-faint">
+                  by {thread.author_name} &middot; posted {timeAgo(thread.created_at)}
+                  {thread.post_count > 1 && <> &middot; active {timeAgo(thread.last_activity_at)}</>}
+                </p>
               </div>
             </Card>
           </Link>

@@ -28,8 +28,8 @@ export function Discussion() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-ink">Discussion</h1>
-        <p className="mt-1 text-sm text-ink-muted">Pick a subject to ask questions or help others.</p>
+        <h1 className="font-display text-2xl font-semibold text-ink">Xipe Community</h1>
+        <p className="mt-1 text-sm text-ink-muted">Pick a subject to join its community — ask questions or help others.</p>
       </div>
 
       {!isLoading && subjects && subjects.length > 0 && (
