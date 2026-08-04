@@ -1,18 +1,20 @@
 import { useState } from "react";
-import { Container, Database, GitBranch, Ship } from "lucide-react";
+import { Container, Cpu, Database, GitBranch, Ship } from "lucide-react";
 import { GitLearn } from "./GitLearn";
 import { DockerLearn } from "./DockerLearn";
 import { SqlLearn } from "./SqlLearn";
 import { K8sLearn } from "./K8sLearn";
+import { OsLearn } from "./OsLearn";
 import { cn } from "../lib/utils";
 
-type Tab = "git" | "docker" | "sql" | "k8s";
+type Tab = "git" | "docker" | "sql" | "k8s" | "os";
 
 const TABS: { id: Tab; label: string; icon: typeof GitBranch }[] = [
   { id: "git", label: "Git & GitHub", icon: GitBranch },
   { id: "docker", label: "Docker", icon: Container },
   { id: "sql", label: "SQL", icon: Database },
   { id: "k8s", label: "Kubernetes", icon: Ship },
+  { id: "os", label: "OS & Shell", icon: Cpu },
 ];
 
 export function DevPractice() {
@@ -36,7 +38,17 @@ export function DevPractice() {
         ))}
       </div>
 
-      {tab === "git" ? <GitLearn /> : tab === "docker" ? <DockerLearn /> : tab === "sql" ? <SqlLearn /> : <K8sLearn />}
+      {tab === "git" ? (
+        <GitLearn />
+      ) : tab === "docker" ? (
+        <DockerLearn />
+      ) : tab === "sql" ? (
+        <SqlLearn />
+      ) : tab === "k8s" ? (
+        <K8sLearn />
+      ) : (
+        <OsLearn />
+      )}
     </div>
   );
 }
