@@ -22,6 +22,7 @@ from app.models.competition import CompetitionRoom, CompetitionParticipant, Comp
 from app.models.git_learn import GitLevelProgress
 from app.models.docker_learn import DockerLevelProgress
 from app.models.sql_learn import SqlLevelProgress
+from app.models.k8s_learn import K8sLevelProgress
 
 __all__ = [
     "User",
@@ -57,4 +58,5 @@ __all__ = [
     "GitLevelProgress",
     "DockerLevelProgress",
     "SqlLevelProgress",
+    "K8sLevelProgress",
 ]

@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { Container, Database, GitBranch } from "lucide-react";
+import { Container, Database, GitBranch, Ship } from "lucide-react";
 import { GitLearn } from "./GitLearn";
 import { DockerLearn } from "./DockerLearn";
 import { SqlLearn } from "./SqlLearn";
+import { K8sLearn } from "./K8sLearn";
 import { cn } from "../lib/utils";
 
-type Tab = "git" | "docker" | "sql";
+type Tab = "git" | "docker" | "sql" | "k8s";
 
 const TABS: { id: Tab; label: string; icon: typeof GitBranch }[] = [
   { id: "git", label: "Git & GitHub", icon: GitBranch },
   { id: "docker", label: "Docker", icon: Container },
   { id: "sql", label: "SQL", icon: Database },
+  { id: "k8s", label: "Kubernetes", icon: Ship },
 ];
 
 export function DevPractice() {
@@ -18,7 +20,7 @@ export function DevPractice() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <div className="flex gap-1 rounded-xl border border-black/10 bg-base-soft/50 p-1 w-fit">
+      <div className="flex flex-wrap gap-1 rounded-xl border border-black/10 bg-base-soft/50 p-1 w-fit">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -34,7 +36,7 @@ export function DevPractice() {
         ))}
       </div>
 
-      {tab === "git" ? <GitLearn /> : tab === "docker" ? <DockerLearn /> : <SqlLearn />}
+      {tab === "git" ? <GitLearn /> : tab === "docker" ? <DockerLearn /> : tab === "sql" ? <SqlLearn /> : <K8sLearn />}
     </div>
   );
 }

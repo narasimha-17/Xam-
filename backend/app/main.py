@@ -15,6 +15,7 @@ from app.routers import (
     exams,
     git_learn,
     jobs,
+    k8s_learn,
     notifications,
     pdfs,
     proctoring,
@@ -55,6 +56,7 @@ app.include_router(competitions.router)
 app.include_router(git_learn.router)
 app.include_router(docker_learn.router)
 app.include_router(sql_learn.router)
+app.include_router(k8s_learn.router)
 
 
 @app.get("/health")
