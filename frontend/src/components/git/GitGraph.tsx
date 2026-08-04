@@ -1,6 +1,6 @@
 import { currentCommitId, reachableCommitIds, type RepoState } from "../../lib/gitSim";
 
-const LANE_COLORS = ["#8e5745", "#5f7a45", "#3d6b8e", "#7a4d8e", "#8e7a3d", "#3d8e7a"];
+const LANE_COLORS = ["#1e3f66", "#e8a23d", "#2c8c86", "#7b5ea8", "#e0475c", "#2e9e6b"];
 const X_STEP = 64;
 const LANE_HEIGHT = 64;
 const NODE_R = 8;
@@ -8,7 +8,7 @@ const PAD_X = 40;
 const PAD_TOP = 30;
 
 function laneColor(lane: number): string {
-  if (lane < 0) return "#9c8f80";
+  if (lane < 0) return "#8b96a6";
   return LANE_COLORS[lane % LANE_COLORS.length];
 }
 
@@ -41,7 +41,7 @@ export function GitGraph({ state }: { state: RepoState }) {
   }
   if (state.head.type === "detached") {
     const list = tagsByCommit.get(state.head.commitId) ?? [];
-    list.push({ label: "HEAD", color: "#9c8f80", dashed: true });
+    list.push({ label: "HEAD", color: "#8b96a6", dashed: true });
     tagsByCommit.set(state.head.commitId, list);
   }
 
@@ -95,8 +95,8 @@ export function GitGraph({ state }: { state: RepoState }) {
           return (
             <g key={id}>
               {id === activeId && <circle cx={x} cy={y} r={NODE_R + 5} fill="none" stroke={color} strokeWidth={2} opacity={0.4} />}
-              <circle cx={x} cy={y} r={NODE_R} fill={color} stroke="#faf7f2" strokeWidth={2} />
-              <text x={x} y={y + NODE_R + 16} textAnchor="middle" fontSize={10} fill="#6b5f52" fontFamily="monospace">
+              <circle cx={x} cy={y} r={NODE_R} fill={color} stroke="#eef3f8" strokeWidth={2} />
+              <text x={x} y={y + NODE_R + 16} textAnchor="middle" fontSize={10} fill="#55677d" fontFamily="monospace">
                 {id}
               </text>
               {tags.map((tag, ti) => (
@@ -116,7 +116,7 @@ export function GitGraph({ state }: { state: RepoState }) {
                     textAnchor="middle"
                     fontSize={9.5}
                     fontWeight={600}
-                    fill={tag.dashed ? tag.color : "#faf7f2"}
+                    fill={tag.dashed ? tag.color : "#eef3f8"}
                     fontFamily="ui-sans-serif, system-ui"
                   >
                     {tag.label}

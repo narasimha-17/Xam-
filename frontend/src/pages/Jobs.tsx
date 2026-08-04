@@ -21,7 +21,7 @@ const JOB_TYPE_LABELS: Record<string, string> = {
   part_time: "Part-time",
 };
 
-const AVATAR_COLORS = ["#8e5745", "#5f7a45", "#b4790e", "#a63d2f", "#201a14", "#6b4234"];
+const AVATAR_COLORS = ["#1e3f66", "#e8a23d", "#b8862e", "#e0475c", "#0a192f", "#142c48"];
 
 function avatarColor(name: string) {
   const sum = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0);
