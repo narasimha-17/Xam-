@@ -29,6 +29,9 @@ import { CodingProblemSolve } from "./pages/CodingProblemSolve";
 import { MockInterview } from "./pages/MockInterview";
 import { DevPractice } from "./pages/DevPractice";
 import { Jobs } from "./pages/Jobs";
+import { Companies } from "./pages/Companies";
+import { CompanyDetail } from "./pages/CompanyDetail";
+import { CompanyAdmin } from "./pages/admin/CompanyAdmin";
 import { Competitions } from "./pages/Competitions";
 import { CompetitionRoom } from "./pages/CompetitionRoom";
 import { Profile } from "./pages/Profile";
@@ -227,6 +230,36 @@ function App() {
                   <Jobs />
                 </AppShell>
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/companies"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <Companies />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/companies/:id"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <CompanyDetail />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/companies"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <CompanyAdmin />
+                </AppShell>
+              </RoleRoute>
             }
           />
           <Route

@@ -9,6 +9,7 @@ from app.routers import (
     ai,
     auth,
     coding,
+    companies,
     competitions,
     discussions,
     docker_learn,
@@ -53,6 +54,7 @@ app.include_router(notifications.router)
 app.include_router(admin.router)
 app.include_router(puzzles.router)
 app.include_router(coding.router)
+app.include_router(companies.router)
 app.include_router(jobs.router)
 app.include_router(competitions.router)
 app.include_router(git_learn.router)

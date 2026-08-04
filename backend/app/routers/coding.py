@@ -220,6 +220,7 @@ async def create_problem(
         languages=payload.languages,
         starter_code=payload.starter_code,
         is_published=payload.is_published,
+        company_id=payload.company_id,
         created_by=admin.id,
         test_cases=[
             CodingTestCase(
@@ -252,6 +253,7 @@ async def update_problem(
     problem.languages = payload.languages
     problem.starter_code = payload.starter_code
     problem.is_published = payload.is_published
+    problem.company_id = payload.company_id
     problem.test_cases = [
         CodingTestCase(input=tc.input, expected_output=tc.expected_output, is_sample=tc.is_sample, order=i)
         for i, tc in enumerate(payload.test_cases)

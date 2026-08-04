@@ -868,3 +868,70 @@ export interface CompetitionAnswerResult {
   points_awarded: number;
   correct_option_id: number;
 }
+
+// ---------- Company interview bank ----------
+
+export interface Company {
+  id: number;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  coding_count: number;
+  aptitude_count: number;
+  technical_count: number;
+  is_subscribed: boolean;
+}
+
+export interface CompanyAptitudeQuestion {
+  id: number;
+  company_id: number;
+  question_text: string;
+  options: string[];
+  order: number;
+}
+
+export interface CompanyAptitudeAdmin extends CompanyAptitudeQuestion {
+  correct_index: number;
+  explanation: string | null;
+}
+
+export interface CompanyAptitudeAttemptResult {
+  is_correct: boolean;
+  correct_index: number;
+  explanation: string | null;
+}
+
+export interface CompanyTechnicalQuestion {
+  id: number;
+  company_id: number;
+  question_text: string;
+  key_points: string[];
+  order: number;
+}
+
+export interface CompanyCodingProblem {
+  id: number;
+  title: string;
+  difficulty: string;
+  tags: string[];
+}
+
+export interface CompanyInput {
+  name: string;
+  description?: string | null;
+}
+
+export interface CompanyAptitudeInput {
+  question_text: string;
+  options: string[];
+  correct_index: number;
+  explanation?: string | null;
+  order?: number;
+}
+
+export interface CompanyTechnicalInput {
+  question_text: string;
+  key_points: string[];
+  order?: number;
+}

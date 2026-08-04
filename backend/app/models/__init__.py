@@ -24,6 +24,7 @@ from app.models.docker_learn import DockerLevelProgress
 from app.models.sql_learn import SqlLevelProgress
 from app.models.k8s_learn import K8sLevelProgress
 from app.models.os_learn import OsLevelProgress
+from app.models.company import Company, CompanySubscription, CompanyAptitudeQuestion, CompanyTechnicalQuestion
 
 __all__ = [
     "User",
@@ -61,4 +62,8 @@ __all__ = [
     "SqlLevelProgress",
     "K8sLevelProgress",
     "OsLevelProgress",
+    "Company",
+    "CompanySubscription",
+    "CompanyAptitudeQuestion",
+    "CompanyTechnicalQuestion",
 ]

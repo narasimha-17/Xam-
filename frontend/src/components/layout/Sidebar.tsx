@@ -3,6 +3,7 @@ import {
   BarChart3,
   BookOpen,
   Briefcase,
+  Building2,
   Code2,
   Flag,
   GitBranch,
@@ -29,6 +30,7 @@ const navLinks = [
   { to: "/coding", label: "Coding practice", icon: Code2 },
   { to: "/dev-practice", label: "Dev Practice", icon: GitBranch },
   { to: "/mock-interview", label: "Mock interview", icon: Mic },
+  { to: "/companies", label: "Company Interview Bank", icon: Building2 },
   { to: "/jobs", label: "Off-campus jobs", icon: Briefcase },
   { to: "/competitions", label: "Live competition", icon: Swords },
   { to: "/progress", label: "Progress", icon: TrendingUp },
@@ -41,6 +43,7 @@ const adminNavLinks = [
   { to: "/admin/students", label: "Student progress", icon: Users },
   { to: "/admin/users", label: "Manage users", icon: UserCog },
   { to: "/admin/reports", label: "Question reports", icon: Flag },
+  { to: "/admin/companies", label: "Company bank", icon: Building2 },
 ];
 
 function Tooltip({ label }: { label: string }) {

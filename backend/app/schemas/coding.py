@@ -25,6 +25,7 @@ class CodingProblemIn(BaseModel):
     languages: list[str] = []
     starter_code: dict[str, str] = {}
     is_published: bool = False
+    company_id: int | None = None
     test_cases: list[CodingTestCaseIn] = []
 
 
@@ -38,6 +39,7 @@ class CodingProblemAdminOut(BaseModel):
     languages: list[str]
     starter_code: dict[str, str]
     is_published: bool
+    company_id: int | None
     created_at: datetime
     test_cases: list[CodingTestCaseOut]
 

@@ -17,6 +17,7 @@ class CodingProblem(Base):
     languages: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     starter_code: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    company_id: Mapped[int | None] = mapped_column(ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
