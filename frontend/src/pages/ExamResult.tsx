@@ -41,7 +41,7 @@ function ExamFeedbackCard({ attemptId }: { attemptId: number }) {
     return (
       <Card className="flex flex-col gap-2">
         <h2 className="font-display text-base font-semibold text-ink">Thanks for your feedback</h2>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-1">
           {[1, 2, 3, 4, 5].map((n) => (
             <Star
               key={n}
@@ -64,7 +64,7 @@ function ExamFeedbackCard({ attemptId }: { attemptId: number }) {
         <p className="mt-1 text-sm text-ink-muted">Help us improve — this doesn't affect your score.</p>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center justify-center gap-1">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
@@ -165,7 +165,27 @@ export function ExamResult() {
     enabled: !!attempt,
   });
 
-  if (attemptLoading || examLoading || !attempt || !exam) return <FullPageLoader label="Loading results..." />;
+  const { data: feedback, isLoading: feedbackLoading } = useQuery({
+    queryKey: ["exam-feedback", attempt?.id],
+    queryFn: () => fetchExamFeedback(attempt!.id),
+    enabled: !!attempt,
+  });
+
+  if (attemptLoading || examLoading || feedbackLoading || !attempt || !exam) {
+    return <FullPageLoader label="Loading results..." />;
+  }
+
+  if (!feedback) {
+    return (
+      <div className="mx-auto flex max-w-2xl flex-col gap-6">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-ink">{exam.title} — Results</h1>
+          <p className="mt-1 text-sm text-ink-muted">Rate this exam to unlock your results.</p>
+        </div>
+        <ExamFeedbackCard attemptId={attempt.id} />
+      </div>
+    );
+  }
 
   const pct = attempt.max_score ? Math.round(((attempt.score ?? 0) / attempt.max_score) * 100) : 0;
   const questionsById = new Map(exam.questions.map((q) => [q.id, q]));

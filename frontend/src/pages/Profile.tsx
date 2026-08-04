@@ -57,7 +57,7 @@ export function Profile() {
   }
 
   return (
-    <div className="flex max-w-xl flex-col gap-6">
+    <div className="mx-auto flex max-w-xl flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-ink">Profile</h1>
         <p className="mt-1 text-sm text-ink-muted">
