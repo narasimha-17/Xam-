@@ -485,7 +485,7 @@ export function ExamTake() {
     return (
       <ExamPageShell>
         <div className="flex min-h-[70vh] items-center justify-center py-8">
-          <Card className="flex w-full max-w-xl flex-col gap-5">
+          <Card className="flex w-full max-w-4xl flex-col gap-5">
             <div className="flex flex-col items-center gap-3 text-center">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10 text-accent-soft">
                 <ShieldCheck size={22} />
@@ -499,60 +499,62 @@ export function ExamTake() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 rounded-xl border border-black/10 bg-base-soft/40 p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
-                <ListChecks size={15} /> Exam instructions
-              </h2>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
-                <li>
-                  Each question shows its point value; answer as many as you can
-                  before time runs out.
-                </li>
-                <li>
-                  Use "Mark for review" to flag questions to revisit before
-                  submitting.
-                </li>
-                <li>
-                  You can navigate freely between questions using the palette,
-                  Previous, and Next.
-                </li>
-                <li>
-                  The timer starts the moment you click "Begin exam" and
-                  auto-submits at zero.
-                </li>
-                <li>
-                  Once submitted, the attempt is final and cannot be retaken or
-                  edited.
-                </li>
-                <li>
-                  If you spot a wrong or unclear question, use "Report question"
-                  — it won't affect your score.
-                </li>
-              </ul>
-            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2 rounded-xl border border-black/10 bg-base-soft/40 p-4">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-ink">
+                  <ListChecks size={15} /> Exam instructions
+                </h2>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
+                  <li>
+                    Each question shows its point value; answer as many as you can
+                    before time runs out.
+                  </li>
+                  <li>
+                    Use "Mark for review" to flag questions to revisit before
+                    submitting.
+                  </li>
+                  <li>
+                    You can navigate freely between questions using the palette,
+                    Previous, and Next.
+                  </li>
+                  <li>
+                    The timer starts the moment you click "Begin exam" and
+                    auto-submits at zero.
+                  </li>
+                  <li>
+                    Once submitted, the attempt is final and cannot be retaken or
+                    edited.
+                  </li>
+                  <li>
+                    If you spot a wrong or unclear question, use "Report question"
+                    — it won't affect your score.
+                  </li>
+                </ul>
+              </div>
 
-            <div className="flex flex-col gap-2 rounded-xl border border-danger/20 bg-danger/5 p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-danger">
-                <ShieldCheck size={15} /> Malpractice policy
-              </h2>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
-                <li>
-                  This exam runs in fullscreen and is proctored for the full
-                  duration.
-                </li>
-                <li>
-                  Switching tabs/windows or exiting fullscreen is recorded and
-                  shown to your instructor.
-                </li>
-                <li>
-                  Copy and paste inside the exam are blocked; attempts are
-                  logged.
-                </li>
-                <li>
-                  Repeated or serious violations may be treated as academic
-                  malpractice and reviewed by your instructor.
-                </li>
-              </ul>
+              <div className="flex flex-col gap-2 rounded-xl border border-danger/20 bg-danger/5 p-4">
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-danger">
+                  <ShieldCheck size={15} /> Malpractice policy
+                </h2>
+                <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
+                  <li>
+                    This exam runs in fullscreen and is proctored for the full
+                    duration.
+                  </li>
+                  <li>
+                    Switching tabs/windows or exiting fullscreen is recorded and
+                    shown to your instructor.
+                  </li>
+                  <li>
+                    Copy and paste inside the exam are blocked; attempts are
+                    logged.
+                  </li>
+                  <li>
+                    Repeated or serious violations may be treated as academic
+                    malpractice and reviewed by your instructor.
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 rounded-xl border border-black/10 bg-base-soft/40 px-4 py-3">

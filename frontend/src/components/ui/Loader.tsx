@@ -7,27 +7,63 @@ interface LoaderProps {
 }
 
 const sizeMap = {
-  sm: "h-6 w-6 border-2",
-  md: "h-10 w-10 border-[3px]",
-  lg: "h-16 w-16 border-4",
+  sm: "h-7 w-7",
+  md: "h-11 w-11",
+  lg: "h-16 w-16",
 };
 
+// Traces the Xam+ mark (the two chevrons, then the plus) in a staggered, looping draw-in —
+// the loading state doubles as a brand moment instead of a generic spinner.
 export function Loader({ size = "md", label, className }: LoaderProps) {
   return (
     <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
-      <div className="relative">
-        <div
-          className={cn(
-            "absolute inset-0 rounded-full bg-accent/40 animate-pulse-glow",
-            sizeMap[size],
-          )}
-        />
-        <div
-          className={cn(
-            "relative rounded-full border-black/10 border-t-accent-soft border-r-accent animate-spin-slow",
-            sizeMap[size],
-          )}
-        />
+      <div className={cn("relative", sizeMap[size])}>
+        <div className="absolute inset-0 rounded-2xl bg-accent/30 animate-pulse-glow" />
+        <svg viewBox="0 0 64 64" fill="none" className="relative h-full w-full">
+          <rect width="64" height="64" rx="16" fill="#0A192F" />
+          <path
+            d="M14 16L28 32L14 48"
+            stroke="#E8A23D"
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pathLength={100}
+            strokeDasharray={100}
+            className="animate-logo-draw"
+            style={{ animationDelay: "0s" }}
+          />
+          <path
+            d="M40 16L28 32L40 48"
+            stroke="#E8A23D"
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            pathLength={100}
+            strokeDasharray={100}
+            className="animate-logo-draw"
+            style={{ animationDelay: "0.2s" }}
+          />
+          <path
+            d="M50 24V40"
+            stroke="#E8A23D"
+            strokeWidth="5"
+            strokeLinecap="round"
+            pathLength={100}
+            strokeDasharray={100}
+            className="animate-logo-draw"
+            style={{ animationDelay: "0.45s" }}
+          />
+          <path
+            d="M42 32H58"
+            stroke="#E8A23D"
+            strokeWidth="5"
+            strokeLinecap="round"
+            pathLength={100}
+            strokeDasharray={100}
+            className="animate-logo-draw"
+            style={{ animationDelay: "0.45s" }}
+          />
+        </svg>
       </div>
       {label && <p className="text-sm text-ink-muted font-body animate-fade-in">{label}</p>}
     </div>

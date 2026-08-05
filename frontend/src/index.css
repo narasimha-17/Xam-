@@ -36,6 +36,24 @@
   --animate-fade-in: fade-in 0.4s ease-out;
   --animate-fade-in-up: fade-in-up 0.45s ease-out;
   --animate-marquee: marquee 16s linear infinite;
+  --animate-logo-draw: logo-draw 1.8s ease-in-out infinite;
+}
+
+@keyframes logo-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  45% {
+    stroke-dashoffset: 0;
+  }
+  80% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
 }
 
 @keyframes marquee {
