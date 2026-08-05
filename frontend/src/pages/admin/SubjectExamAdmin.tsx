@@ -13,6 +13,7 @@ import { Textarea } from "../../components/ui/Textarea";
 import { Select } from "../../components/ui/Select";
 import { Loader } from "../../components/ui/Loader";
 import { Modal } from "../../components/ui/Modal";
+import { SearchInput } from "../../components/ui/SearchInput";
 import { cn } from "../../lib/utils";
 
 interface SubjectFormValues {
@@ -83,16 +84,27 @@ export function SubjectExamAdmin() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [subjectToDelete, setSubjectToDelete] = useState(false);
   const [examToDelete, setExamToDelete] = useState<ExamSummary | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [subjectSearch, setSubjectSearch] = useState("");
+  const [examSearch, setExamSearch] = useState("");
 
   const { data: subjects, isLoading } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
   const selected = subjects?.find((s) => s.id === selectedId) ?? null;
   const selectedIndex = subjects?.findIndex((s) => s.id === selectedId) ?? -1;
+
+  const filteredSubjects = subjects?.filter((s) => {
+    const q = subjectSearch.trim().toLowerCase();
+    if (!q) return true;
+    return s.name.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q);
+  });
 
   const { data: exams, isLoading: examsLoading } = useQuery({
     queryKey: ["exams", selectedId],
     queryFn: () => fetchExams(selectedId as number),
     enabled: selectedId !== null,
   });
+
+  const filteredExams = exams?.filter((e) => e.title.toLowerCase().includes(examSearch.trim().toLowerCase()));
 
   const { register, handleSubmit, reset, formState } = useForm<SubjectFormValues>();
   const createMutation = useMutation({
@@ -101,6 +113,7 @@ export function SubjectExamAdmin() {
       queryClient.invalidateQueries({ queryKey: ["subjects"] });
       reset();
       setSelectedId(subject.id);
+      setCreateModalOpen(false);
     },
   });
 
@@ -168,66 +181,61 @@ export function SubjectExamAdmin() {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <Card className="flex w-full shrink-0 flex-col gap-3 lg:w-96">
-          <h2 className="text-sm font-semibold text-ink">Subjects</h2>
-          {isLoading && <Loader label="Loading..." />}
-          <div className="flex flex-col gap-1.5">
-            {subjects?.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => setSelectedId(s.id)}
-                className={cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all",
-                  selectedId === s.id
-                    ? "bg-accent/[0.08] shadow-glow ring-1 ring-accent/20"
-                    : "hover:bg-black/5",
-                )}
-              >
-                <div
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                    TILE_ICON_STYLES[i % TILE_ICON_STYLES.length],
-                  )}
-                >
-                  <BookOpen size={16} strokeWidth={1.75} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <span className="block truncate font-medium text-ink">{s.name}</span>
-                  <span className="flex items-center gap-2 text-xs text-ink-faint">
-                    {s.exam_count} exam{s.exam_count === 1 ? "" : "s"}
-                    {s.education_level && (
-                      <span className="rounded-full border border-accent-soft/40 bg-accent-soft/10 px-2 py-0.5 font-medium uppercase tracking-wide text-accent-soft">
-                        {EDUCATION_LEVEL_LABELS[s.education_level]}
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </button>
-            ))}
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-ink">Subjects</h2>
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              aria-label="Add subject"
+              title="Add subject"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-dim"
+            >
+              <Plus size={16} />
+            </button>
           </div>
 
-          <form
-            onSubmit={handleSubmit((values) => createMutation.mutate(values))}
-            className="flex flex-col gap-2 border-t border-black/10 pt-3"
-          >
-            <Input placeholder="Subject name" {...register("name", { required: true })} />
-            <Textarea placeholder="Description (optional)" rows={2} {...register("description")} />
-            <Select {...register("education_level")}>
-              <option value="">Visible to everyone</option>
-              {(Object.entries(EDUCATION_LEVEL_LABELS) as [EducationLevel, string][]).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label} only
-                </option>
-              ))}
-            </Select>
-            <Button
-              type="submit"
-              isLoading={createMutation.isPending}
-              disabled={!formState.isValid}
-              className="w-full text-sm"
-            >
-              <Plus size={14} /> Add subject
-            </Button>
-          </form>
+          <SearchInput value={subjectSearch} onChange={setSubjectSearch} placeholder="Search subjects..." />
+
+          {isLoading && <Loader label="Loading..." />}
+          {!isLoading && filteredSubjects?.length === 0 && (
+            <p className="py-4 text-center text-sm text-ink-muted">No subjects match "{subjectSearch}".</p>
+          )}
+          <div className="flex flex-col gap-1.5">
+            {filteredSubjects?.map((s) => {
+              const i = subjects?.findIndex((x) => x.id === s.id) ?? 0;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSelectedId(s.id)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all",
+                    selectedId === s.id
+                      ? "bg-accent/[0.08] shadow-glow ring-1 ring-accent/20"
+                      : "hover:bg-black/5",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                      TILE_ICON_STYLES[i % TILE_ICON_STYLES.length],
+                    )}
+                  >
+                    <BookOpen size={16} strokeWidth={1.75} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate font-medium text-ink">{s.name}</span>
+                    <span className="flex items-center gap-2 text-xs text-ink-faint">
+                      {s.exam_count} exam{s.exam_count === 1 ? "" : "s"}
+                      {s.education_level && (
+                        <span className="rounded-full border border-accent-soft/40 bg-accent-soft/10 px-2 py-0.5 font-medium uppercase tracking-wide text-accent-soft">
+                          {EDUCATION_LEVEL_LABELS[s.education_level]}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </Card>
 
         {selected ? (
@@ -266,22 +274,36 @@ export function SubjectExamAdmin() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-ink">Exams</h3>
-              <Link to={`/subjects/${selected.id}/exams/new`}>
-                <Button className="text-sm">
-                  <Plus size={14} /> New exam
-                </Button>
-              </Link>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="shrink-0 text-sm font-semibold text-ink">Exams</h3>
+              <div className="flex items-center gap-2">
+                {exams && exams.length > 0 && (
+                  <SearchInput
+                    value={examSearch}
+                    onChange={setExamSearch}
+                    placeholder="Search exams..."
+                    className="w-48"
+                  />
+                )}
+                <Link to={`/subjects/${selected.id}/exams/new`}>
+                  <Button className="shrink-0 text-sm">
+                    <Plus size={14} /> New exam
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {examsLoading && <Loader label="Loading exams..." />}
             {!examsLoading && exams?.length === 0 && (
               <p className="py-6 text-center text-sm text-ink-muted">No exams yet.</p>
             )}
+            {!examsLoading && exams && exams.length > 0 && filteredExams?.length === 0 && (
+              <p className="py-6 text-center text-sm text-ink-muted">No exams match "{examSearch}".</p>
+            )}
 
             <div className="flex flex-col gap-2">
-              {exams?.map((exam, i) => {
+              {filteredExams?.map((exam) => {
+                const i = exams?.findIndex((x) => x.id === exam.id) ?? 0;
                 const availability = examAvailability(exam);
                 return (
                   <div
@@ -359,6 +381,29 @@ export function SubjectExamAdmin() {
           </Card>
         )}
       </div>
+
+      <Modal open={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Add subject">
+        <form onSubmit={handleSubmit((values) => createMutation.mutate(values))} className="flex flex-col gap-4">
+          <Input label="Subject name" placeholder="e.g. Digital Electronics" {...register("name", { required: true })} />
+          <Textarea
+            label="Description (optional)"
+            placeholder="Short description of what this subject covers"
+            rows={3}
+            {...register("description")}
+          />
+          <Select label="Restrict to education level (optional)" {...register("education_level")}>
+            <option value="">Visible to everyone</option>
+            {(Object.entries(EDUCATION_LEVEL_LABELS) as [EducationLevel, string][]).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label} only
+              </option>
+            ))}
+          </Select>
+          <Button type="submit" isLoading={createMutation.isPending} disabled={!formState.isValid} className="w-full">
+            <Plus size={16} /> Add subject
+          </Button>
+        </form>
+      </Modal>
 
       <Modal open={subjectToDelete} onClose={() => setSubjectToDelete(false)} title="Delete subject?">
         <div className="flex flex-col gap-4">
