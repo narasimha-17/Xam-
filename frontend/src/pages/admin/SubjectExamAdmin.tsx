@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { BookOpen, Clock, Copy, HelpCircle, Plus, Target, Trash2 } from "lucide-react";
+import { BookOpen, Clock, Copy, FileText, HelpCircle, Plus, Target, Trash2 } from "lucide-react";
 import { createSubject, deleteSubject, fetchSubjects } from "../../lib/subjects";
 import { deleteExam, duplicateExam, fetchExams, setExamPublished } from "../../lib/exams";
 import type { EducationLevel, ExamSummary } from "../../types/api";
@@ -27,6 +27,17 @@ const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
   engineering: "Engineering",
 };
 
+// Same rotating-color language as Dashboard/Subjects, so this admin page reads as part of the
+// same product instead of a flatter, monotone "admin panel" bolted on the side.
+const TILE_ACCENTS = ["border-accent", "border-accent-soft", "border-warning", "border-success"];
+const TILE_ICON_STYLES = [
+  "bg-orange-100 text-orange-700",
+  "bg-teal-100 text-teal-700",
+  "bg-amber-100 text-amber-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-rose-100 text-rose-700",
+];
+
 function examAvailability(exam: ExamSummary) {
   const now = Date.now();
   if (exam.available_from && now < new Date(exam.available_from).getTime()) {
@@ -41,6 +52,32 @@ function examAvailability(exam: ExamSummary) {
   return { label: null, tone: "accent" as const };
 }
 
+function StatTile({
+  icon: Icon,
+  label,
+  value,
+  accent,
+  iconStyle,
+}: {
+  icon: typeof BookOpen;
+  label: string;
+  value: string | number;
+  accent: string;
+  iconStyle: string;
+}) {
+  return (
+    <Card className={cn("flex items-center gap-4 border-l-4", accent)}>
+      <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", iconStyle)}>
+        <Icon size={20} strokeWidth={1.75} />
+      </div>
+      <div>
+        <p className="font-display text-2xl font-semibold text-ink">{value}</p>
+        <p className="text-xs text-ink-muted">{label}</p>
+      </div>
+    </Card>
+  );
+}
+
 export function SubjectExamAdmin() {
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -49,6 +86,7 @@ export function SubjectExamAdmin() {
 
   const { data: subjects, isLoading } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
   const selected = subjects?.find((s) => s.id === selectedId) ?? null;
+  const selectedIndex = subjects?.findIndex((s) => s.id === selectedId) ?? -1;
 
   const { data: exams, isLoading: examsLoading } = useQuery({
     queryKey: ["exams", selectedId],
@@ -92,6 +130,9 @@ export function SubjectExamAdmin() {
     },
   });
 
+  const totalExams = subjects?.reduce((sum, s) => sum + s.exam_count, 0) ?? 0;
+  const totalPdfs = subjects?.reduce((sum, s) => sum + s.pdf_count, 0) ?? 0;
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -101,26 +142,65 @@ export function SubjectExamAdmin() {
         <p className="mt-1 text-sm text-ink-muted">Create subjects and manage their exams.</p>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatTile
+          icon={BookOpen}
+          label="Subjects"
+          value={subjects?.length ?? 0}
+          accent={TILE_ACCENTS[0]}
+          iconStyle={TILE_ICON_STYLES[0]}
+        />
+        <StatTile
+          icon={Target}
+          label="Total exams"
+          value={totalExams}
+          accent={TILE_ACCENTS[1]}
+          iconStyle={TILE_ICON_STYLES[1]}
+        />
+        <StatTile
+          icon={FileText}
+          label="Total PDFs"
+          value={totalPdfs}
+          accent={TILE_ACCENTS[2]}
+          iconStyle={TILE_ICON_STYLES[2]}
+        />
+      </div>
+
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <Card className="flex w-full shrink-0 flex-col gap-3 lg:w-80">
+        <Card className="flex w-full shrink-0 flex-col gap-3 lg:w-96">
           <h2 className="text-sm font-semibold text-ink">Subjects</h2>
           {isLoading && <Loader label="Loading..." />}
-          <div className="flex flex-col gap-1">
-            {subjects?.map((s) => (
+          <div className="flex flex-col gap-1.5">
+            {subjects?.map((s, i) => (
               <button
                 key={s.id}
                 onClick={() => setSelectedId(s.id)}
                 className={cn(
-                  "flex items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors",
-                  selectedId === s.id ? "bg-accent/10 text-ink" : "text-ink-muted hover:bg-black/5",
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-all",
+                  selectedId === s.id
+                    ? "bg-accent/[0.08] shadow-glow ring-1 ring-accent/20"
+                    : "hover:bg-black/5",
                 )}
               >
-                <span className="truncate font-medium">{s.name}</span>
-                {s.education_level && (
-                  <span className="shrink-0 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-accent">
-                    {EDUCATION_LEVEL_LABELS[s.education_level]}
+                <div
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                    TILE_ICON_STYLES[i % TILE_ICON_STYLES.length],
+                  )}
+                >
+                  <BookOpen size={16} strokeWidth={1.75} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-ink">{s.name}</span>
+                  <span className="flex items-center gap-2 text-xs text-ink-faint">
+                    {s.exam_count} exam{s.exam_count === 1 ? "" : "s"}
+                    {s.education_level && (
+                      <span className="rounded-full border border-accent-soft/40 bg-accent-soft/10 px-2 py-0.5 font-medium uppercase tracking-wide text-accent-soft">
+                        {EDUCATION_LEVEL_LABELS[s.education_level]}
+                      </span>
+                    )}
                   </span>
-                )}
+                </div>
               </button>
             ))}
           </div>
@@ -150,108 +230,133 @@ export function SubjectExamAdmin() {
           </form>
         </Card>
 
-        {selected && (
-          <div className="flex flex-1 flex-col gap-4">
-            <Card className="flex items-center justify-between">
-              <div>
-                <h2 className="font-display text-lg font-semibold text-ink">{selected.name}</h2>
-                <p className="text-xs text-ink-faint">
-                  {selected.exam_count} exam{selected.exam_count === 1 ? "" : "s"} &middot; {selected.pdf_count} PDF
-                  {selected.pdf_count === 1 ? "" : "s"}
-                </p>
+        {selected ? (
+          <Card className="flex flex-1 flex-col gap-4">
+            <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                    TILE_ICON_STYLES[selectedIndex >= 0 ? selectedIndex % TILE_ICON_STYLES.length : 0],
+                  )}
+                >
+                  <BookOpen size={20} strokeWidth={1.75} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-display text-lg font-semibold text-ink">{selected.name}</h2>
+                    {selected.education_level && (
+                      <span className="rounded-full border border-accent-soft/40 bg-accent-soft/10 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-accent-soft">
+                        {EDUCATION_LEVEL_LABELS[selected.education_level]}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-ink-faint">
+                    {selected.exam_count} exam{selected.exam_count === 1 ? "" : "s"} &middot; {selected.pdf_count} PDF
+                    {selected.pdf_count === 1 ? "" : "s"}
+                  </p>
+                </div>
               </div>
               <Button
                 variant="outline"
-                className="text-danger hover:bg-danger/10"
+                className="shrink-0 text-danger hover:bg-danger/10"
                 onClick={() => setSubjectToDelete(true)}
               >
                 <Trash2 size={14} /> Delete subject
               </Button>
-            </Card>
+            </div>
 
-            <Card className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-ink">Exams</h3>
-                <Link to={`/subjects/${selected.id}/exams/new`}>
-                  <Button className="text-sm">
-                    <Plus size={14} /> New exam
-                  </Button>
-                </Link>
-              </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-ink">Exams</h3>
+              <Link to={`/subjects/${selected.id}/exams/new`}>
+                <Button className="text-sm">
+                  <Plus size={14} /> New exam
+                </Button>
+              </Link>
+            </div>
 
-              {examsLoading && <Loader label="Loading exams..." />}
-              {!examsLoading && exams?.length === 0 && (
-                <p className="py-6 text-center text-sm text-ink-muted">No exams yet.</p>
-              )}
+            {examsLoading && <Loader label="Loading exams..." />}
+            {!examsLoading && exams?.length === 0 && (
+              <p className="py-6 text-center text-sm text-ink-muted">No exams yet.</p>
+            )}
 
-              <div className="flex flex-col gap-2">
-                {exams?.map((exam) => {
-                  const availability = examAvailability(exam);
-                  return (
-                    <div
-                      key={exam.id}
-                      className="flex items-center justify-between gap-4 rounded-xl border border-black/10 p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent-soft">
-                          <Target size={16} />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-ink">{exam.title}</p>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-ink-faint">
-                            <span className="flex items-center gap-1">
-                              <HelpCircle size={12} /> {exam.question_count} questions
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock size={12} /> {exam.duration_minutes} min
-                            </span>
-                            {!exam.is_published && (
-                              <span className="rounded-full bg-warning/10 px-2 py-0.5 text-warning">Draft</span>
-                            )}
-                            {exam.is_published && availability.label && (
-                              <span
-                                className={cn(
-                                  "rounded-full px-2 py-0.5",
-                                  availability.tone === "accent" && "bg-accent/10 text-accent-soft",
-                                  availability.tone === "danger" && "bg-danger/10 text-danger",
-                                  availability.tone === "warning" && "bg-warning/10 text-warning",
-                                )}
-                              >
-                                {availability.label}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+            <div className="flex flex-col gap-2">
+              {exams?.map((exam, i) => {
+                const availability = examAvailability(exam);
+                return (
+                  <div
+                    key={exam.id}
+                    className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-black/10 p-3 transition-colors hover:border-accent/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                          TILE_ICON_STYLES[i % TILE_ICON_STYLES.length],
+                        )}
+                      >
+                        <Target size={16} strokeWidth={1.75} />
                       </div>
-                      <div className="flex shrink-0 items-center gap-2">
-                        <Button
-                          variant="outline"
-                          isLoading={publishMutation.isPending}
-                          onClick={() => publishMutation.mutate({ examId: exam.id, isPublished: !exam.is_published })}
-                        >
-                          {exam.is_published ? "Unpublish" : "Publish"}
-                        </Button>
-                        <button
-                          onClick={() => duplicateMutation.mutate(exam.id)}
-                          className="rounded-lg p-2 text-ink-faint transition-colors hover:bg-accent/10 hover:text-accent-soft"
-                          aria-label={`Duplicate ${exam.title}`}
-                        >
-                          <Copy size={16} />
-                        </button>
-                        <button
-                          onClick={() => setExamToDelete(exam)}
-                          className="rounded-lg p-2 text-ink-faint transition-colors hover:bg-danger/10 hover:text-danger"
-                          aria-label={`Delete ${exam.title}`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                      <div>
+                        <p className="text-sm font-medium text-ink">{exam.title}</p>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-ink-faint">
+                          <span className="flex items-center gap-1">
+                            <HelpCircle size={12} /> {exam.question_count} questions
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock size={12} /> {exam.duration_minutes} min
+                          </span>
+                          {!exam.is_published && (
+                            <span className="rounded-full bg-warning/10 px-2 py-0.5 text-warning">Draft</span>
+                          )}
+                          {exam.is_published && availability.label && (
+                            <span
+                              className={cn(
+                                "rounded-full px-2 py-0.5",
+                                availability.tone === "accent" && "bg-accent/10 text-accent-soft",
+                                availability.tone === "danger" && "bg-danger/10 text-danger",
+                                availability.tone === "warning" && "bg-warning/10 text-warning",
+                              )}
+                            >
+                              {availability.label}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Button
+                        variant="outline"
+                        isLoading={publishMutation.isPending}
+                        onClick={() => publishMutation.mutate({ examId: exam.id, isPublished: !exam.is_published })}
+                      >
+                        {exam.is_published ? "Unpublish" : "Publish"}
+                      </Button>
+                      <button
+                        onClick={() => duplicateMutation.mutate(exam.id)}
+                        className="rounded-lg p-2 text-ink-faint transition-colors hover:bg-accent/10 hover:text-accent-soft"
+                        aria-label={`Duplicate ${exam.title}`}
+                      >
+                        <Copy size={16} />
+                      </button>
+                      <button
+                        onClick={() => setExamToDelete(exam)}
+                        className="rounded-lg p-2 text-ink-faint transition-colors hover:bg-danger/10 hover:text-danger"
+                        aria-label={`Delete ${exam.title}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        ) : (
+          <Card className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center">
+            <BookOpen size={28} className="text-ink-faint" />
+            <p className="text-sm text-ink-muted">Pick a subject on the left to manage its exams.</p>
+          </Card>
         )}
       </div>
 
