@@ -223,8 +223,8 @@ export function SubjectExamAdmin() {
         />
       </div>
 
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        <Card className="flex w-full shrink-0 flex-col gap-3 lg:w-96">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+        <Card className="flex min-w-0 flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-ink">Subjects</h2>
             <button
@@ -283,7 +283,7 @@ export function SubjectExamAdmin() {
         </Card>
 
         {selected ? (
-          <Card className="flex flex-1 flex-col gap-4">
+          <Card className="flex min-w-0 flex-col gap-4">
             <div className="flex items-start justify-between gap-4 border-b border-black/10 pb-4">
               <div className="flex items-center gap-3">
                 <div
@@ -318,15 +318,15 @@ export function SubjectExamAdmin() {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h3 className="shrink-0 text-sm font-semibold text-ink">Exams</h3>
-              <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
                 {exams && exams.length > 0 && (
                   <SearchInput
                     value={examSearch}
                     onChange={setExamSearch}
                     placeholder="Search exams..."
-                    className="w-48"
+                    className="min-w-0 max-w-[200px] flex-1"
                   />
                 )}
                 <Link to={`/subjects/${selected.id}/exams/new`}>
@@ -465,7 +465,7 @@ export function SubjectExamAdmin() {
             </div>
           </Card>
         ) : (
-          <Card className="flex flex-1 flex-col items-center justify-center gap-2 py-24 text-center">
+          <Card className="flex min-w-0 flex-col items-center justify-center gap-2 py-24 text-center">
             <BookOpen size={28} className="text-ink-faint" />
             <p className="text-sm text-ink-muted">Pick a subject on the left to manage its exams.</p>
           </Card>
