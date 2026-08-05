@@ -59,7 +59,8 @@ export function ExamTake() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const profileIncomplete =
-    user?.role !== "admin" && !(user?.roll_number && user?.section && user?.department);
+    user?.role !== "admin" &&
+    !(user?.roll_number && user?.section && user?.department && user?.gender && user?.education_level);
 
   const attemptMutation = useMutation({
     mutationFn: () => startAttempt(examId),
@@ -468,7 +469,8 @@ export function ExamTake() {
             </div>
             <h1 className="font-display text-xl font-semibold text-ink">Complete your profile first</h1>
             <p className="text-sm text-ink-muted">
-              Add your roll number, section, and department to your profile before you can take an exam.
+              Add your roll number, section, department, gender, and education level to your profile before you can
+              take an exam.
             </p>
             <Link to="/profile">
               <Button>Go to profile</Button>

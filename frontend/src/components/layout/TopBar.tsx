@@ -5,6 +5,7 @@ import { ChevronDown, LogOut, Menu, Search, UserRound } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
 import { fetchSubjects } from "../../lib/subjects";
 import { cn } from "../../lib/utils";
+import { UserAvatar } from "../ui/UserAvatar";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { useSidebar } from "./SidebarContext";
@@ -110,9 +111,7 @@ export function TopBar() {
             onClick={() => setMenuOpen((o) => !o)}
             className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-black/5"
           >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent font-display text-xs font-semibold text-white">
-              {user?.full_name?.[0]?.toUpperCase() ?? "?"}
-            </div>
+            <UserAvatar fullName={user?.full_name} avatarId={user?.avatar_id} size={32} className="text-xs" />
             <ChevronDown size={14} className={cn("text-ink-muted transition-transform", menuOpen && "rotate-180")} />
           </button>
           {menuOpen && (

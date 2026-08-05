@@ -12,11 +12,20 @@ import { Textarea } from "../components/ui/Textarea";
 import { Modal } from "../components/ui/Modal";
 import { Loader } from "../components/ui/Loader";
 import { SearchInput } from "../components/ui/SearchInput";
+import { Select } from "../components/ui/Select";
+import type { EducationLevel } from "../types/api";
 
 interface SubjectFormValues {
   name: string;
   description: string;
+  education_level: EducationLevel | "";
 }
+
+const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
+  school: "School",
+  college: "College",
+  engineering: "Engineering",
+};
 
 // Rotating tile colors so the catalog reads as a colorful course grid, Whizlabs-style.
 const TILE_STYLES = [
@@ -44,7 +53,8 @@ export function Subjects() {
   const { register, handleSubmit, reset, formState } = useForm<SubjectFormValues>();
 
   const createMutation = useMutation({
-    mutationFn: (values: SubjectFormValues) => createSubject(values.name, values.description),
+    mutationFn: (values: SubjectFormValues) =>
+      createSubject(values.name, values.description, values.education_level),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subjects"] });
       setModalOpen(false);
@@ -90,7 +100,14 @@ export function Subjects() {
                 <BookOpen size={20} strokeWidth={1.75} />
               </div>
               <div>
-                <h3 className="font-display text-lg font-semibold text-ink">{subject.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-display text-lg font-semibold text-ink">{subject.name}</h3>
+                  {subject.education_level && (
+                    <span className="shrink-0 rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-accent">
+                      {EDUCATION_LEVEL_LABELS[subject.education_level]}
+                    </span>
+                  )}
+                </div>
                 {subject.description && (
                   <p className="mt-1 line-clamp-2 text-sm text-ink-muted">{subject.description}</p>
                 )}
@@ -120,6 +137,14 @@ export function Subjects() {
             rows={3}
             {...register("description")}
           />
+          <Select label="Restrict to education level (optional)" {...register("education_level")}>
+            <option value="">Visible to everyone</option>
+            {(Object.entries(EDUCATION_LEVEL_LABELS) as [EducationLevel, string][]).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label} only
+              </option>
+            ))}
+          </Select>
           <Button type="submit" isLoading={createMutation.isPending} disabled={!formState.isValid} className="w-full">
             <FileText size={16} /> Create subject
           </Button>

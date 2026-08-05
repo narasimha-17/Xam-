@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Token, User } from "../types/api";
+import type { EducationLevel, Gender, ProfileStats, Token, User } from "../types/api";
 
 export const TOKEN_STORAGE_KEY = "xamplus_token";
 
@@ -53,12 +53,20 @@ export interface UpdateProfilePayload {
   phone_number?: string;
   location?: string;
   institution?: string;
+  gender?: Gender;
+  education_level?: EducationLevel;
+  avatar_id?: string;
   current_password?: string;
   new_password?: string;
 }
 
 export async function updateProfile(payload: UpdateProfilePayload): Promise<User> {
   const { data } = await api.patch<User>("/auth/me", payload);
+  return data;
+}
+
+export async function fetchProfileStats(): Promise<ProfileStats> {
+  const { data } = await api.get<ProfileStats>("/auth/me/stats");
   return data;
 }
 

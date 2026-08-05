@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.models.exam import Exam
 from app.models.pdf import Pdf
 from app.models.subject import Subject, Topic
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.subject import SubjectCreate, SubjectOut, SubjectUpdate, TopicCreate, TopicOut
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
@@ -22,6 +22,7 @@ async def _with_counts(subjects: list[Subject], db: AsyncSession) -> list[Subjec
             id=s.id,
             name=s.name,
             description=s.description,
+            education_level=s.education_level,
             created_by=s.created_by,
             topics=[TopicOut.model_validate(t) for t in s.topics],
             exam_count=exam_counts.get(s.id, 0),
@@ -32,8 +33,15 @@ async def _with_counts(subjects: list[Subject], db: AsyncSession) -> list[Subjec
 
 
 @router.get("", response_model=list[SubjectOut])
-async def list_subjects(db: AsyncSession = Depends(get_db), _: User = Depends(get_current_user)):
-    result = await db.scalars(select(Subject).options(selectinload(Subject.topics)).order_by(Subject.name))
+async def list_subjects(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)):
+    query = select(Subject).options(selectinload(Subject.topics)).order_by(Subject.name)
+    if user.role != UserRole.admin:
+        # A subject with no education_level set is visible to everyone; otherwise it must match
+        # the student's own level.
+        query = query.where(
+            (Subject.education_level.is_(None)) | (Subject.education_level == user.education_level)
+        )
+    result = await db.scalars(query)
     return await _with_counts(list(result.all()), db)
 
 
@@ -41,7 +49,12 @@ async def list_subjects(db: AsyncSession = Depends(get_db), _: User = Depends(ge
 async def create_subject(
     payload: SubjectCreate, db: AsyncSession = Depends(get_db), admin: User = Depends(require_admin)
 ):
-    subject = Subject(name=payload.name, description=payload.description, created_by=admin.id)
+    subject = Subject(
+        name=payload.name,
+        description=payload.description,
+        education_level=payload.education_level,
+        created_by=admin.id,
+    )
     db.add(subject)
     await db.commit()
     await db.refresh(subject, attribute_names=["topics"])
@@ -75,6 +88,10 @@ async def update_subject(
         subject.name = payload.name
     if payload.description is not None:
         subject.description = payload.description
+    if payload.clear_education_level:
+        subject.education_level = None
+    elif payload.education_level is not None:
+        subject.education_level = payload.education_level
     await db.commit()
     await db.refresh(subject, attribute_names=["topics"])
     return (await _with_counts([subject], db))[0]

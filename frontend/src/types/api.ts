@@ -1,4 +1,6 @@
 export type UserRole = "admin" | "student";
+export type Gender = "male" | "female" | "other";
+export type EducationLevel = "school" | "college" | "engineering";
 
 export interface User {
   id: number;
@@ -10,9 +12,29 @@ export interface User {
   phone_number: string | null;
   location: string | null;
   institution: string | null;
+  gender: Gender | null;
+  education_level: EducationLevel | null;
+  avatar_id: string | null;
   role: UserRole;
   is_active: boolean;
   created_at: string;
+}
+
+export interface Badge {
+  id: string;
+  label: string;
+  description: string;
+  earned: boolean;
+}
+
+export interface ProfileStats {
+  puzzles_solved: number;
+  puzzle_current_streak: number;
+  puzzle_longest_streak: number;
+  coding_solved: number;
+  exams_completed: number;
+  total_xp: number;
+  badges: Badge[];
 }
 
 export interface Token {
@@ -31,6 +53,7 @@ export interface Subject {
   id: number;
   name: string;
   description: string | null;
+  education_level: EducationLevel | null;
   created_by: number;
   topics: Topic[];
   exam_count: number;
