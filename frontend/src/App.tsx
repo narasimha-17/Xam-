@@ -20,6 +20,7 @@ import { PlatformDashboard } from "./pages/admin/PlatformDashboard";
 import { SubjectExamAdmin } from "./pages/admin/SubjectExamAdmin";
 import { PdfAdmin } from "./pages/admin/PdfAdmin";
 import { PuzzleAdmin } from "./pages/admin/PuzzleAdmin";
+import { ActivityLogs } from "./pages/admin/ActivityLogs";
 import { ExamTake } from "./pages/ExamTake";
 import { ExamResult } from "./pages/ExamResult";
 import { Discussion } from "./pages/Discussion";
@@ -174,6 +175,16 @@ function App() {
               <RoleRoute role="admin">
                 <AppShell>
                   <PuzzleAdmin />
+                </AppShell>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/logs"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <ActivityLogs />
                 </AppShell>
               </RoleRoute>
             }

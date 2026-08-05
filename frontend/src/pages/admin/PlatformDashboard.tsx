@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import {
   BarChart3,
   BookOpen,
@@ -89,7 +90,12 @@ export function PlatformDashboard() {
       )}
 
       <Card className="flex flex-col gap-3">
-        <h2 className="font-display text-base font-semibold text-ink">Recent admin activity</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-base font-semibold text-ink">Recent admin activity</h2>
+          <Link to="/admin/logs" className="text-xs font-medium text-accent-soft hover:underline">
+            View all logs
+          </Link>
+        </div>
         {logLoading && <Loader className="py-8" label="Loading activity..." />}
         {!logLoading && log?.length === 0 && (
           <p className="py-8 text-center text-sm text-ink-muted">No admin actions logged yet.</p>

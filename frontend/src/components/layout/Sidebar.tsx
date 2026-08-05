@@ -15,6 +15,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Puzzle,
+  ScrollText,
   Swords,
   TrendingUp,
   UserCog,
@@ -41,6 +42,18 @@ const navLinks = [
   { to: "/discussion", label: "Xipe Community", icon: MessagesSquare },
 ];
 
+// Admin accounts don't practice, so they only get the student pages they actually act on
+// directly (posting jobs, creating competition rooms, moderating discussion) — not the
+// practice-only pages (coding/dev practice, mock interview, progress, planner, daily puzzle).
+const ADMIN_VISIBLE_STUDENT_PATHS = new Set([
+  "/dashboard",
+  "/subjects",
+  "/companies",
+  "/jobs",
+  "/competitions",
+  "/discussion",
+]);
+
 const adminNavLinks = [
   { to: "/admin/overview", label: "Overview", icon: BarChart3 },
   { to: "/admin/subjects", label: "Subjects & exams", icon: BookOpen },
@@ -50,6 +63,7 @@ const adminNavLinks = [
   { to: "/admin/students", label: "Student progress", icon: Users },
   { to: "/admin/users", label: "Manage users", icon: UserCog },
   { to: "/admin/reports", label: "Question reports", icon: Flag },
+  { to: "/admin/logs", label: "Logs", icon: ScrollText },
 ];
 
 function Tooltip({ label }: { label: string }) {
@@ -66,7 +80,10 @@ function Tooltip({ label }: { label: string }) {
 export function Sidebar() {
   const { isCollapsed, toggle, isMobileOpen, closeMobile } = useSidebar();
   const { user } = useAuth();
-  const links = user?.role === "admin" ? [...navLinks, ...adminNavLinks] : navLinks;
+  const links =
+    user?.role === "admin"
+      ? [...navLinks.filter((l) => ADMIN_VISIBLE_STUDENT_PATHS.has(l.to)), ...adminNavLinks]
+      : navLinks;
 
   return (
     <>
