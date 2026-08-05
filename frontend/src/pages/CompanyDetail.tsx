@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -6,10 +6,13 @@ import {
   Bookmark,
   BookmarkCheck,
   CheckCircle2,
+  Clock,
   Code2,
   Lightbulb,
   ListChecks,
   MessageSquareText,
+  RotateCcw,
+  Trophy,
   XCircle,
 } from "lucide-react";
 import {
@@ -20,7 +23,7 @@ import {
   fetchCompanyTechnical,
   subscribeCompany,
 } from "../lib/companies";
-import type { CompanyAptitudeAttemptResult } from "../types/api";
+import type { CompanyAptitudeAttemptResult, CompanyAptitudeQuestion, CompanyTechnicalQuestion } from "../types/api";
 import { Card } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Loader } from "../components/ui/Loader";
@@ -28,20 +31,82 @@ import { cn } from "../lib/utils";
 
 type RoundTab = "coding" | "aptitude" | "technical";
 
-function AptitudeQuestionCard({ questionId, questionText, options }: { questionId: number; questionText: string; options: string[] }) {
+const SECONDS_PER_APTITUDE_Q = 60;
+const SECONDS_PER_TECHNICAL_Q = 90;
+
+function useCountdown(totalSeconds: number, active: boolean, onExpire: () => void) {
+  const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
+
+  useEffect(() => {
+    setSecondsLeft(totalSeconds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalSeconds, active]);
+
+  useEffect(() => {
+    if (!active) return;
+    if (secondsLeft <= 0) {
+      onExpire();
+      return;
+    }
+    const timer = setTimeout(() => setSecondsLeft((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, secondsLeft]);
+
+  return secondsLeft;
+}
+
+function RoundTimer({ secondsLeft }: { secondsLeft: number }) {
+  const minutes = Math.max(0, Math.floor(secondsLeft / 60));
+  const seconds = Math.max(0, secondsLeft % 60);
+  const lowTime = secondsLeft < 60;
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-semibold",
+        lowTime ? "border-danger/40 bg-danger/10 text-danger" : "border-black/10 bg-base-soft/50 text-ink",
+      )}
+    >
+      <Clock size={15} />
+      {minutes}:{seconds.toString().padStart(2, "0")}
+    </div>
+  );
+}
+
+function ProgressBar({ current, total }: { current: number; total: number }) {
+  return (
+    <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/10">
+      <div
+        className="h-full rounded-full bg-accent transition-[width] duration-300"
+        style={{ width: `${((current + 1) / total) * 100}%` }}
+      />
+    </div>
+  );
+}
+
+function AptitudeQuestionCard({
+  question,
+  onAnswered,
+}: {
+  question: CompanyAptitudeQuestion;
+  onAnswered: (isCorrect: boolean) => void;
+}) {
   const [selected, setSelected] = useState<number | null>(null);
   const [result, setResult] = useState<CompanyAptitudeAttemptResult | null>(null);
 
   const attemptMutation = useMutation({
-    mutationFn: (index: number) => attemptCompanyAptitude(questionId, index),
-    onSuccess: (data) => setResult(data),
+    mutationFn: (index: number) => attemptCompanyAptitude(question.id, index),
+    onSuccess: (data) => {
+      setResult(data);
+      onAnswered(data.is_correct);
+    },
   });
 
   return (
     <Card className="flex flex-col gap-4">
-      <p className="text-sm font-medium text-ink">{questionText}</p>
+      <p className="text-sm font-medium text-ink">{question.question_text}</p>
       <div className="flex flex-col gap-2">
-        {options.map((option, i) => {
+        {question.options.map((option, i) => {
           const isPicked = selected === i;
           const isCorrectOption = result?.correct_index === i;
           return (
@@ -96,14 +161,14 @@ function AptitudeQuestionCard({ questionId, questionText, options }: { questionI
   );
 }
 
-function TechnicalQuestionCard({ questionText, keyPoints }: { questionText: string; keyPoints: string[] }) {
+function TechnicalQuestionCard({ question }: { question: CompanyTechnicalQuestion }) {
   const [revealed, setRevealed] = useState(false);
   return (
     <Card className="flex flex-col gap-3">
-      <p className="text-sm font-medium text-ink">{questionText}</p>
+      <p className="text-sm font-medium text-ink">{question.question_text}</p>
       {revealed ? (
         <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
-          {keyPoints.map((p, i) => (
+          {question.key_points.map((p, i) => (
             <li key={i}>{p}</li>
           ))}
         </ul>
@@ -113,6 +178,180 @@ function TechnicalQuestionCard({ questionText, keyPoints }: { questionText: stri
         </Button>
       )}
     </Card>
+  );
+}
+
+/** Runs a set of questions one at a time with an overall countdown, instead of one long scrollable list. */
+function AptitudeRound({ questions }: { questions: CompanyAptitudeQuestion[] }) {
+  const [started, setStarted] = useState(false);
+  const [index, setIndex] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [answeredCurrent, setAnsweredCurrent] = useState(false);
+  const [finished, setFinished] = useState(false);
+
+  const totalSeconds = Math.max(60, questions.length * SECONDS_PER_APTITUDE_Q);
+  const secondsLeft = useCountdown(totalSeconds, started && !finished, () => setFinished(true));
+
+  function restart() {
+    setStarted(false);
+    setIndex(0);
+    setCorrectCount(0);
+    setAnsweredCurrent(false);
+    setFinished(false);
+  }
+
+  if (questions.length === 0) {
+    return <Card className="py-12 text-center text-sm text-ink-muted">No aptitude questions added yet.</Card>;
+  }
+
+  if (!started) {
+    return (
+      <Card className="flex flex-col items-center gap-3 py-12 text-center">
+        <ListChecks size={28} className="text-accent-soft" />
+        <h3 className="font-display text-lg font-semibold text-ink">Aptitude round</h3>
+        <p className="max-w-sm text-sm text-ink-muted">
+          {questions.length} questions &middot; {Math.round(totalSeconds / 60)} minutes. One question at a time —
+          submit to see the answer, then move to the next. The round ends automatically when time runs out.
+        </p>
+        <Button onClick={() => setStarted(true)}>Start aptitude round</Button>
+      </Card>
+    );
+  }
+
+  if (finished) {
+    return (
+      <Card className="flex flex-col items-center gap-3 py-12 text-center">
+        <Trophy size={28} className="text-warning" />
+        <h3 className="font-display text-lg font-semibold text-ink">Round complete</h3>
+        <p className="text-sm text-ink-muted">
+          You scored <span className="font-semibold text-ink">{correctCount}</span> out of{" "}
+          <span className="font-semibold text-ink">{index + (answeredCurrent ? 1 : 0)}</span> answered
+          {index + (answeredCurrent ? 1 : 0) < questions.length ? " before time ran out" : ""}.
+        </p>
+        <Button variant="outline" onClick={restart}>
+          <RotateCcw size={15} /> Try again
+        </Button>
+      </Card>
+    );
+  }
+
+  const question = questions[index];
+  const isLast = index === questions.length - 1;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm font-medium text-ink-muted">
+          Question {index + 1} of {questions.length}
+        </p>
+        <RoundTimer secondsLeft={secondsLeft} />
+      </div>
+      <ProgressBar current={index} total={questions.length} />
+
+      <AptitudeQuestionCard
+        key={question.id}
+        question={question}
+        onAnswered={(isCorrect) => {
+          setAnsweredCurrent(true);
+          if (isCorrect) setCorrectCount((c) => c + 1);
+        }}
+      />
+
+      {answeredCurrent && (
+        <Button
+          className="w-fit"
+          onClick={() => {
+            if (isLast) {
+              setFinished(true);
+            } else {
+              setIndex((i) => i + 1);
+              setAnsweredCurrent(false);
+            }
+          }}
+        >
+          {isLast ? "Finish round" : "Next question"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function TechnicalRound({ questions }: { questions: CompanyTechnicalQuestion[] }) {
+  const [started, setStarted] = useState(false);
+  const [index, setIndex] = useState(0);
+  const [finished, setFinished] = useState(false);
+
+  const totalSeconds = Math.max(60, questions.length * SECONDS_PER_TECHNICAL_Q);
+  const secondsLeft = useCountdown(totalSeconds, started && !finished, () => setFinished(true));
+
+  function restart() {
+    setStarted(false);
+    setIndex(0);
+    setFinished(false);
+  }
+
+  if (questions.length === 0) {
+    return <Card className="py-12 text-center text-sm text-ink-muted">No technical questions added yet.</Card>;
+  }
+
+  if (!started) {
+    return (
+      <Card className="flex flex-col items-center gap-3 py-12 text-center">
+        <MessageSquareText size={28} className="text-accent-soft" />
+        <h3 className="font-display text-lg font-semibold text-ink">Technical round</h3>
+        <p className="max-w-sm text-sm text-ink-muted">
+          {questions.length} questions &middot; {Math.round(totalSeconds / 60)} minutes. One question at a time —
+          think it through, reveal the key points, then move to the next.
+        </p>
+        <Button onClick={() => setStarted(true)}>Start technical round</Button>
+      </Card>
+    );
+  }
+
+  if (finished) {
+    return (
+      <Card className="flex flex-col items-center gap-3 py-12 text-center">
+        <Trophy size={28} className="text-warning" />
+        <h3 className="font-display text-lg font-semibold text-ink">Round complete</h3>
+        <p className="text-sm text-ink-muted">
+          You reviewed <span className="font-semibold text-ink">{index + 1}</span> of{" "}
+          <span className="font-semibold text-ink">{questions.length}</span> questions.
+        </p>
+        <Button variant="outline" onClick={restart}>
+          <RotateCcw size={15} /> Review again
+        </Button>
+      </Card>
+    );
+  }
+
+  const question = questions[index];
+  const isLast = index === questions.length - 1;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm font-medium text-ink-muted">
+          Question {index + 1} of {questions.length}
+        </p>
+        <RoundTimer secondsLeft={secondsLeft} />
+      </div>
+      <ProgressBar current={index} total={questions.length} />
+
+      <TechnicalQuestionCard key={question.id} question={question} />
+
+      <Button
+        className="w-fit"
+        onClick={() => {
+          if (isLast) {
+            setFinished(true);
+          } else {
+            setIndex((i) => i + 1);
+          }
+        }}
+      >
+        {isLast ? "Finish round" : "Next question"}
+      </Button>
+    </div>
   );
 }
 
@@ -163,7 +402,7 @@ export function CompanyDetail() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <Link to="/companies" className="flex w-fit items-center gap-1.5 text-sm text-ink-muted hover:text-ink">
         <ArrowLeft size={15} /> Back to companies
       </Link>
@@ -226,27 +465,8 @@ export function CompanyDetail() {
         </div>
       )}
 
-      {tab === "aptitude" && (
-        <div className="flex flex-col gap-4">
-          {aptitude?.length === 0 && (
-            <Card className="py-12 text-center text-sm text-ink-muted">No aptitude questions added yet.</Card>
-          )}
-          {aptitude?.map((q) => (
-            <AptitudeQuestionCard key={q.id} questionId={q.id} questionText={q.question_text} options={q.options} />
-          ))}
-        </div>
-      )}
-
-      {tab === "technical" && (
-        <div className="flex flex-col gap-4">
-          {technical?.length === 0 && (
-            <Card className="py-12 text-center text-sm text-ink-muted">No technical questions added yet.</Card>
-          )}
-          {technical?.map((q) => (
-            <TechnicalQuestionCard key={q.id} questionText={q.question_text} keyPoints={q.key_points} />
-          ))}
-        </div>
-      )}
+      {tab === "aptitude" && aptitude && <AptitudeRound questions={aptitude} />}
+      {tab === "technical" && technical && <TechnicalRound questions={technical} />}
     </div>
   );
 }
