@@ -45,14 +45,9 @@ const navLinks = [
 // Admin accounts don't practice, so they only get the student pages they actually act on
 // directly (posting jobs, creating competition rooms, moderating discussion) — not the
 // practice-only pages (coding/dev practice, mock interview, progress, planner, daily puzzle).
-const ADMIN_VISIBLE_STUDENT_PATHS = new Set([
-  "/dashboard",
-  "/subjects",
-  "/companies",
-  "/jobs",
-  "/competitions",
-  "/discussion",
-]);
+// Subjects is also excluded: subject/exam/PDF management now lives entirely under
+// Admin > Subjects & exams, so the plain student browse page would just be a redundant duplicate.
+const ADMIN_VISIBLE_STUDENT_PATHS = new Set(["/dashboard", "/companies", "/jobs", "/competitions", "/discussion"]);
 
 const adminNavLinks = [
   { to: "/admin/overview", label: "Overview", icon: BarChart3 },

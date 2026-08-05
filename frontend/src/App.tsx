@@ -21,6 +21,7 @@ import { SubjectExamAdmin } from "./pages/admin/SubjectExamAdmin";
 import { PdfAdmin } from "./pages/admin/PdfAdmin";
 import { PuzzleAdmin } from "./pages/admin/PuzzleAdmin";
 import { ActivityLogs } from "./pages/admin/ActivityLogs";
+import { ExamPreview } from "./pages/admin/ExamPreview";
 import { ExamTake } from "./pages/ExamTake";
 import { ExamResult } from "./pages/ExamResult";
 import { Discussion } from "./pages/Discussion";
@@ -185,6 +186,16 @@ function App() {
               <RoleRoute role="admin">
                 <AppShell>
                   <ActivityLogs />
+                </AppShell>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/exams/:id/preview"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <ExamPreview />
                 </AppShell>
               </RoleRoute>
             }

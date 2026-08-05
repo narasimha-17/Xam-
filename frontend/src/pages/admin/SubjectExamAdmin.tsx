@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { BookOpen, Clock, Copy, FileText, HelpCircle, Plus, Target, Trash2 } from "lucide-react";
+import { BookOpen, Clock, Copy, Eye, FileText, HelpCircle, Plus, Target, Trash2, Upload } from "lucide-react";
 import { createSubject, deleteSubject, fetchSubjects } from "../../lib/subjects";
 import { deleteExam, duplicateExam, fetchExams, setExamPublished } from "../../lib/exams";
-import type { EducationLevel, ExamSummary } from "../../types/api";
+import { deletePdf, fetchPdfs, uploadPdf } from "../../lib/pdfs";
+import type { EducationLevel, ExamSummary, Pdf } from "../../types/api";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -20,6 +21,11 @@ interface SubjectFormValues {
   name: string;
   description: string;
   education_level: EducationLevel | "";
+}
+
+interface PdfFormValues {
+  title: string;
+  topicId: string;
 }
 
 const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
@@ -87,6 +93,9 @@ export function SubjectExamAdmin() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [subjectSearch, setSubjectSearch] = useState("");
   const [examSearch, setExamSearch] = useState("");
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfToDelete, setPdfToDelete] = useState<Pdf | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: subjects, isLoading } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
   const selected = subjects?.find((s) => s.id === selectedId) ?? null;
@@ -105,6 +114,12 @@ export function SubjectExamAdmin() {
   });
 
   const filteredExams = exams?.filter((e) => e.title.toLowerCase().includes(examSearch.trim().toLowerCase()));
+
+  const { data: pdfs, isLoading: pdfsLoading } = useQuery({
+    queryKey: ["pdfs", selectedId],
+    queryFn: () => fetchPdfs(selectedId as number),
+    enabled: selectedId !== null,
+  });
 
   const { register, handleSubmit, reset, formState } = useForm<SubjectFormValues>();
   const createMutation = useMutation({
@@ -140,6 +155,35 @@ export function SubjectExamAdmin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exams", selectedId] });
       setExamToDelete(null);
+    },
+  });
+
+  const { register: registerPdf, handleSubmit: handleSubmitPdf, reset: resetPdf } = useForm<PdfFormValues>();
+  const uploadPdfMutation = useMutation({
+    mutationFn: (values: PdfFormValues) => {
+      const file = fileInputRef.current?.files?.[0];
+      if (!file) throw new Error("Choose a PDF file");
+      return uploadPdf({
+        subjectId: selectedId as number,
+        topicId: values.topicId ? Number(values.topicId) : null,
+        title: values.title,
+        file,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pdfs", selectedId] });
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      setPdfModalOpen(false);
+      resetPdf();
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    },
+  });
+  const deletePdfMutation = useMutation({
+    mutationFn: (id: number) => deletePdf(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pdfs", selectedId] });
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      setPdfToDelete(null);
     },
   });
 
@@ -308,9 +352,9 @@ export function SubjectExamAdmin() {
                 return (
                   <div
                     key={exam.id}
-                    className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-black/10 p-3 transition-colors hover:border-accent/30"
+                    className="flex flex-col gap-3 rounded-xl border border-black/10 p-3 transition-colors hover:border-accent/30 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div
                         className={cn(
                           "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
@@ -319,8 +363,8 @@ export function SubjectExamAdmin() {
                       >
                         <Target size={16} strokeWidth={1.75} />
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-ink">{exam.title}</p>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-ink">{exam.title}</p>
                         <div className="mt-0.5 flex flex-wrap items-center gap-3 text-xs text-ink-faint">
                           <span className="flex items-center gap-1">
                             <HelpCircle size={12} /> {exam.question_count} questions
@@ -347,6 +391,14 @@ export function SubjectExamAdmin() {
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
+                      <Link
+                        to={`/admin/exams/${exam.id}/preview`}
+                        className="rounded-lg p-2 text-ink-faint transition-colors hover:bg-accent/10 hover:text-accent-soft"
+                        aria-label={`Preview ${exam.title}`}
+                        title="Preview exam"
+                      >
+                        <Eye size={16} />
+                      </Link>
                       <Button
                         variant="outline"
                         isLoading={publishMutation.isPending}
@@ -372,6 +424,44 @@ export function SubjectExamAdmin() {
                   </div>
                 );
               })}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-black/10 pt-4">
+              <h3 className="text-sm font-semibold text-ink">Study material</h3>
+              <Button onClick={() => setPdfModalOpen(true)} className="text-sm">
+                <Upload size={14} /> Upload PDF
+              </Button>
+            </div>
+
+            {pdfsLoading && <Loader label="Loading PDFs..." />}
+            {!pdfsLoading && pdfs?.length === 0 && (
+              <p className="py-6 text-center text-sm text-ink-muted">No PDFs uploaded yet.</p>
+            )}
+
+            <div className="flex flex-col gap-2">
+              {pdfs?.map((pdf) => (
+                <div
+                  key={pdf.id}
+                  className="flex items-center justify-between gap-4 rounded-xl border border-black/10 p-3 transition-colors hover:border-accent/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                      <FileText size={16} strokeWidth={1.75} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-ink">{pdf.title}</p>
+                      <p className="text-xs text-ink-faint">{new Date(pdf.uploaded_at).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setPdfToDelete(pdf)}
+                    className="shrink-0 rounded-lg p-2 text-ink-faint transition-colors hover:bg-danger/10 hover:text-danger"
+                    aria-label={`Delete ${pdf.title}`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
             </div>
           </Card>
         ) : (
@@ -403,6 +493,59 @@ export function SubjectExamAdmin() {
             <Plus size={16} /> Add subject
           </Button>
         </form>
+      </Modal>
+
+      <Modal open={pdfModalOpen} onClose={() => setPdfModalOpen(false)} title="Upload PDF">
+        <form onSubmit={handleSubmitPdf((values) => uploadPdfMutation.mutate(values))} className="flex flex-col gap-4">
+          <Input label="Title" placeholder="e.g. Unit 3 Notes" {...registerPdf("title", { required: true })} />
+          {selected && selected.topics.length > 0 && (
+            <Select label="Topic (optional)" {...registerPdf("topicId")}>
+              <option value="">No specific topic</option>
+              {selected.topics.map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.name}
+                </option>
+              ))}
+            </Select>
+          )}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium uppercase tracking-wide text-ink-muted">PDF file</label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              required
+              className="rounded-xl border border-black/10 bg-base-soft/60 px-4 py-2.5 text-sm text-ink file:mr-3 file:rounded-lg file:border-0 file:bg-accent/20 file:px-3 file:py-1.5 file:text-accent-soft"
+            />
+          </div>
+          {uploadPdfMutation.isError && (
+            <p className="text-sm text-danger">Upload failed. Check the file and try again.</p>
+          )}
+          <Button type="submit" isLoading={uploadPdfMutation.isPending} className="w-full">
+            <Upload size={16} /> Upload
+          </Button>
+        </form>
+      </Modal>
+
+      <Modal open={pdfToDelete !== null} onClose={() => setPdfToDelete(null)} title="Delete PDF?">
+        <div className="flex flex-col gap-4">
+          <p className="text-sm text-ink-muted">
+            This will permanently delete <span className="font-medium text-ink">"{pdfToDelete?.title}"</span>. This
+            can't be undone.
+          </p>
+          <div className="flex items-center justify-end gap-3">
+            <Button variant="outline" onClick={() => setPdfToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => pdfToDelete && deletePdfMutation.mutate(pdfToDelete.id)}
+              isLoading={deletePdfMutation.isPending}
+              className="bg-danger hover:bg-danger/90"
+            >
+              <Trash2 size={15} /> Delete PDF
+            </Button>
+          </div>
+        </div>
       </Modal>
 
       <Modal open={subjectToDelete} onClose={() => setSubjectToDelete(false)} title="Delete subject?">
