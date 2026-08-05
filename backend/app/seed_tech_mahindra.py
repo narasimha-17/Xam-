@@ -72,6 +72,48 @@ APTITUDE_QUESTIONS = [
         "correct_index": 1,
         "explanation": "The 5 km east and 5 km west cancel out, leaving only the 3 km north displacement.",
     },
+    {
+        "question_text": "A can complete a job in 12 days and B can complete it in 15 days. How long will they take working together?",
+        "options": ["6 days", "6.67 days", "7 days", "8 days"],
+        "correct_index": 1,
+        "explanation": "A's rate = 1/12, B's rate = 1/15. Combined = 1/12 + 1/15 = 9/60 = 3/20. Time = 20/3 ≈ 6.67 days.",
+    },
+    {
+        "question_text": "In how many ways can the letters of the word 'MAHINDRA' be arranged (treating repeated letters as identical)?",
+        "options": ["20160", "40320", "10080", "5040"],
+        "correct_index": 0,
+        "explanation": "MAHINDRA has 8 letters with 'A' repeated twice. Arrangements = 8! / 2! = 40320 / 2 = 20160.",
+    },
+    {
+        "question_text": "A bag contains 4 red and 6 blue balls. If one ball is drawn at random, what is the probability it is red?",
+        "options": ["0.2", "0.3", "0.4", "0.5"],
+        "correct_index": 2,
+        "explanation": "P(red) = 4 / (4+6) = 4/10 = 0.4.",
+    },
+    {
+        "question_text": "Pointing to a photograph, a man says, 'She is the daughter of my grandfather's only son.' How is the woman related to the man?",
+        "options": ["Sister", "Mother", "Aunt", "Daughter"],
+        "correct_index": 0,
+        "explanation": "The man's grandfather's only son is the man's own father, so the woman is his father's daughter — his sister.",
+    },
+    {
+        "question_text": "Statement: All pens are books. All books are tables. Conclusion I: All pens are tables. Conclusion II: Some tables are pens. Which conclusion(s) follow?",
+        "options": ["Only I follows", "Only II follows", "Both I and II follow", "Neither follows"],
+        "correct_index": 2,
+        "explanation": "Chaining the two universal statements gives 'all pens are tables' (I), which also implies at least some tables are pens (II).",
+    },
+    {
+        "question_text": "The cost price of 20 articles equals the selling price of 16 articles. What is the profit percentage?",
+        "options": ["20%", "25%", "30%", "16%"],
+        "correct_index": 1,
+        "explanation": "Let CP of 1 article = 1. CP of 20 = 20 = SP of 16, so SP of 1 = 20/16 = 1.25. Profit % = 25%.",
+    },
+    {
+        "question_text": "A car covers 240 km in 4 hours. What speed must it maintain to cover the same distance in 3 hours?",
+        "options": ["70 km/hr", "75 km/hr", "80 km/hr", "85 km/hr"],
+        "correct_index": 2,
+        "explanation": "Required speed = distance / time = 240 / 3 = 80 km/hr.",
+    },
 ]
 
 TECHNICAL_QUESTIONS = [
@@ -156,6 +198,70 @@ TECHNICAL_QUESTIONS = [
             "A mechanism (try/catch/finally) to gracefully handle runtime errors without crashing the program",
             "Separates error-handling logic from normal program flow",
             "Allows cleanup (e.g. closing files/connections) via a finally block regardless of success or failure",
+        ],
+    },
+    {
+        "question_text": "What is the difference between an abstract class and an interface (Java/C++ style)?",
+        "key_points": [
+            "An abstract class can have both implemented and unimplemented methods; an interface traditionally has only method signatures",
+            "A class can implement multiple interfaces but extend only one (abstract) class",
+            "Use an abstract class for a shared base with common code; use an interface to define a contract across unrelated classes",
+        ],
+    },
+    {
+        "question_text": "Write a SQL query to find the second highest salary from an Employee table.",
+        "key_points": [
+            "SELECT MAX(salary) FROM Employee WHERE salary < (SELECT MAX(salary) FROM Employee)",
+            "Alternative: use LIMIT/OFFSET or DENSE_RANK() window function ordered by salary descending",
+            "Handles ties correctly only if using DISTINCT or DENSE_RANK, since plain MAX/nested-max approach naturally skips duplicate top values",
+        ],
+    },
+    {
+        "question_text": "What are joins in SQL? Explain INNER JOIN vs LEFT JOIN.",
+        "key_points": [
+            "A join combines rows from two or more tables based on a related column",
+            "INNER JOIN returns only rows with matching values in both tables",
+            "LEFT JOIN returns all rows from the left table plus matched rows from the right (NULL where there's no match)",
+        ],
+    },
+    {
+        "question_text": "Explain the difference between multitasking, multithreading, and multiprocessing.",
+        "key_points": [
+            "Multitasking: the OS runs multiple processes seemingly at once by time-slicing the CPU",
+            "Multithreading: a single process runs multiple threads that share the same memory space",
+            "Multiprocessing: multiple CPUs/cores execute processes truly in parallel",
+        ],
+    },
+    {
+        "question_text": "What is a virtual function in C++, and why is it needed?",
+        "key_points": [
+            "A member function declared in a base class and overridden in a derived class, resolved at runtime via the vtable",
+            "Enables runtime polymorphism — calling through a base class pointer invokes the derived class's override",
+            "Without it, the base class version would always be called regardless of the actual object type (static binding)",
+        ],
+    },
+    {
+        "question_text": "What is the difference between == and .equals() in Java (or value vs reference equality generally)?",
+        "key_points": [
+            "== compares reference/memory address for objects (whether two variables point to the same object)",
+            ".equals() compares logical/content equality, and can be overridden to define what 'equal' means for a class",
+            "For primitives, == compares actual values directly",
+        ],
+    },
+    {
+        "question_text": "Tell me about yourself and why should we hire you for this role?",
+        "key_points": [
+            "A concise walkthrough of education, relevant projects/skills, and what draws you to this specific role/company",
+            "Connect your strengths directly to the job requirements rather than reciting a generic resume summary",
+            "End with a clear, confident statement of the value you'd bring in the first few months",
+        ],
+    },
+    {
+        "question_text": "Describe a challenging project you worked on and how you handled a conflict within your team.",
+        "key_points": [
+            "Use a structured answer (situation, task, action, result) rather than a vague summary",
+            "Focus on your specific contribution and decision-making, not just what the team did",
+            "For the conflict part, emphasize communication and compromise over assigning blame",
         ],
     },
 ]
