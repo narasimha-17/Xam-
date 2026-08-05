@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { fetchSubjects } from "../../lib/subjects";
 import { cn } from "../../lib/utils";
 import { NotificationBell } from "./NotificationBell";
+import { ThemeToggle } from "./ThemeToggle";
 import { useSidebar } from "./SidebarContext";
 
 const SECTION_LABELS: Record<string, string> = {
@@ -101,6 +102,7 @@ export function TopBar() {
           )}
         </div>
 
+        <ThemeToggle />
         <NotificationBell />
 
         <div ref={menuRef} className="relative">

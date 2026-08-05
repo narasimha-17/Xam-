@@ -62,7 +62,7 @@ function XipeAvatar({ isSpeaking, isListening }: { isSpeaking: boolean; isListen
         <div
           className={cn(
             "relative flex h-24 w-24 items-center justify-center rounded-full text-white shadow-glow transition-colors duration-300",
-            isSpeaking ? "bg-accent" : isListening ? "bg-accent-soft" : "bg-ink/70",
+            isSpeaking ? "bg-accent" : isListening ? "bg-accent-soft" : "bg-navy/70",
           )}
         >
           <Bot size={42} strokeWidth={1.5} />

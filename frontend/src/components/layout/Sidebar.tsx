@@ -52,7 +52,7 @@ function Tooltip({ label }: { label: string }) {
   return (
     <span
       role="tooltip"
-      className="pointer-events-none absolute left-full top-1/2 z-[100] ml-3 -translate-x-1 -translate-y-1/2 whitespace-nowrap rounded-lg bg-ink px-2.5 py-1.5 text-xs font-medium text-base opacity-0 shadow-glow transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
+      className="pointer-events-none absolute left-full top-1/2 z-[100] ml-3 -translate-x-1 -translate-y-1/2 whitespace-nowrap rounded-lg bg-navy px-2.5 py-1.5 text-xs font-medium text-white opacity-0 shadow-glow transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
     >
       {label}
     </span>
@@ -67,7 +67,7 @@ export function Sidebar() {
   return (
     <>
       {isMobileOpen && (
-        <div className="fixed inset-0 z-30 bg-ink/40 backdrop-blur-[2px] lg:hidden" onClick={closeMobile} />
+        <div className="fixed inset-0 z-30 bg-navy/40 backdrop-blur-[2px] lg:hidden" onClick={closeMobile} />
       )}
       <aside
         className={cn(

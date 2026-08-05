@@ -6,6 +6,7 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { Logo } from "../components/ui/Logo";
 import { HeroIllustration } from "../components/landing/HeroIllustration";
+import { ThemeToggle } from "../components/layout/ThemeToggle";
 
 const ROTATING_SUBJECTS = ["Data Structures", "Machine Learning", "Computer Networks", "DBMS", "Deep Learning"];
 
@@ -136,6 +137,7 @@ export function Landing() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <Logo className="text-xl" />
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link to="/login">
             <Button variant="ghost">Sign in</Button>
           </Link>

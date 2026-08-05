@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* "Education" palette: Deep Azure / Rich Azure / Light Crimson / Light Orange / Icy Azure */
   --color-base: #eef3f8;
@@ -17,6 +19,11 @@
   --color-ink: #0a192f;
   --color-ink-muted: #55677d;
   --color-ink-faint: #8b96a6;
+
+  /* Fixed decorative dark-navy, used for permanently-dark surfaces (tooltips, terminal
+     panels, overlays) that must stay dark regardless of light/dark theme. Unlike --color-ink,
+     this never flips. */
+  --color-navy: #0a192f;
 
   --font-display: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -76,6 +83,30 @@
   color-scheme: light;
 }
 
+/* Dark theme: overrides the same custom properties the light theme defines above, so every
+   utility built from them (bg-base, text-ink, bg-base-soft, ...) flips automatically —
+   no per-component dark: classes needed. --color-navy is intentionally NOT overridden here;
+   it's the fixed dark-navy used for surfaces that stay dark in both themes. */
+:root.dark {
+  color-scheme: dark;
+
+  --color-base: #0b1626;
+  --color-base-soft: #142235;
+  --color-base-panel: #101d2e;
+
+  --color-accent: #4a7fb5;
+  --color-accent-soft: #f0b25a;
+  --color-accent-dim: #35618c;
+
+  --color-success: #3ecf8e;
+  --color-danger: #ff6b7a;
+  --color-warning: #dba63f;
+
+  --color-ink: #eef1f5;
+  --color-ink-muted: #a3b1c2;
+  --color-ink-faint: #71809a;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -95,11 +126,12 @@ body,
 
 body {
   margin: 0;
-  background-color: #eef3f8;
-  color: #0a192f;
+  background-color: var(--color-base);
+  color: var(--color-ink);
   font-family: "Inter", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1,
@@ -115,7 +147,7 @@ h4 {
   inset: 0;
   z-index: -1;
   overflow: hidden;
-  background: #eef3f8;
+  background: var(--color-base);
 }
 
 .bg-grid {
@@ -129,6 +161,12 @@ h4 {
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
 }
 
+.dark .bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+}
+
 /* Glass panel utility used by Card and surfaces app-wide */
 .glass {
   background: rgba(255, 255, 255, 0.65);
@@ -136,6 +174,12 @@ h4 {
   backdrop-filter: blur(16px);
   border: 1px solid rgba(10, 25, 47, 0.08);
   box-shadow: 0 1px 2px rgba(10, 25, 47, 0.04), 0 12px 32px -16px rgba(10, 25, 47, 0.12);
+}
+
+.dark .glass {
+  background: rgba(16, 29, 46, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 32px -16px rgba(0, 0, 0, 0.45);
 }
 
 /* Hidden-scrollbar utility for horizontally-scrolled strips (e.g. exam question palette) */
@@ -161,4 +205,43 @@ h4 {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(10, 25, 47, 0.25);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* The app uses Tailwind's literal black-opacity utilities (border-black/10, bg-black/5, ...) as
+   subtle borders/hover overlays on light surfaces. In dark mode these need to lighten instead of
+   darken further. Scoped narrowly to the shades actually used for light-surface borders/hovers —
+   NOT bg-black/20, bg-black/25 (intentional darker-within-dark terminal panel backgrounds) or
+   bg-black/60 (modal backdrop, dark in both themes by convention). */
+.dark .bg-black\/5 {
+  background-color: rgb(255 255 255 / 0.06);
+}
+.dark .bg-black\/10 {
+  background-color: rgb(255 255 255 / 0.08);
+}
+.dark .bg-black\/15 {
+  background-color: rgb(255 255 255 / 0.12);
+}
+.dark .border-black\/5 {
+  border-color: rgb(255 255 255 / 0.08);
+}
+.dark .border-black\/10 {
+  border-color: rgb(255 255 255 / 0.12);
+}
+.dark .border-black\/15 {
+  border-color: rgb(255 255 255 / 0.16);
+}
+.dark .border-black\/20 {
+  border-color: rgb(255 255 255 / 0.2);
+}
+.dark .divide-black\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(255 255 255 / 0.08);
+}
+.dark .text-black\/15 {
+  color: rgb(255 255 255 / 0.15);
 }

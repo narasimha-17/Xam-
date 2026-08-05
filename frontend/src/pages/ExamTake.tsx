@@ -680,7 +680,7 @@ export function ExamTake() {
           </div>
         )}
         {autoSubmitMessage && (
-          <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 bg-ink/90 backdrop-blur-sm">
+          <div className="fixed inset-0 z-[60] flex flex-col items-center justify-center gap-3 bg-navy/90 backdrop-blur-sm">
             <Loader size="lg" />
             <p className="text-sm font-medium text-white">{autoSubmitMessage}</p>
           </div>

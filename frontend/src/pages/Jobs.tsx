@@ -307,7 +307,7 @@ export function Jobs() {
               className={cn(
                 "rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-colors",
                 typeFilter === opt.value
-                  ? "border-ink bg-ink text-base"
+                  ? "border-navy bg-navy text-white"
                   : "border-black/10 text-ink-muted hover:bg-black/5",
               )}
             >

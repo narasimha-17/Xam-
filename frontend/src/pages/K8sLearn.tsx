@@ -197,16 +197,16 @@ export function K8sLearn() {
             </div>
           </Card>
 
-          <div className="flex flex-col gap-2 rounded-2xl bg-ink p-4 shadow-glow">
-            <div className="flex items-center gap-2 text-xs font-medium text-base/70">
+          <div className="flex flex-col gap-2 rounded-2xl bg-navy p-4 shadow-glow">
+            <div className="flex items-center gap-2 text-xs font-medium text-white/70">
               <Terminal size={14} /> Terminal
             </div>
-            <div className="max-h-56 overflow-y-auto rounded-lg bg-black/20 p-3 font-mono text-xs leading-relaxed text-base">
-              {log.length === 0 && <p className="text-base/40">Output will appear here once you run a command below.</p>}
+            <div className="max-h-56 overflow-y-auto rounded-lg bg-black/20 p-3 font-mono text-xs leading-relaxed text-white">
+              {log.length === 0 && <p className="text-white/40">Output will appear here once you run a command below.</p>}
               {log.map((entry, i) => (
                 <div key={i} className="mb-2">
                   <p className="text-accent-soft">$ {entry.command}</p>
-                  <p className={cn("whitespace-pre-wrap", entry.error ? "text-danger" : "text-base/80")}>
+                  <p className={cn("whitespace-pre-wrap", entry.error ? "text-danger" : "text-white/80")}>
                     {entry.output}
                   </p>
                 </div>
@@ -227,7 +227,7 @@ export function K8sLearn() {
                 placeholder="Type your kubectl command here and press Enter..."
                 spellCheck={false}
                 autoCapitalize="off"
-                className="flex-1 bg-transparent font-mono text-sm text-base outline-none placeholder:text-base/40"
+                className="flex-1 bg-transparent font-mono text-sm text-white outline-none placeholder:text-white/40"
               />
               <Button
                 variant="outline"
