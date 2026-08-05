@@ -11,8 +11,16 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: sh entrypoint.sh
-    plan: free
+    # Disks require a paid plan — free-tier services can't mount one at all, and their local
+    # filesystem is wiped on every deploy/restart anyway. Uploaded PDFs and discussion images
+    # live under UPLOAD_DIR/DISCUSSION_IMAGE_DIR, which are pointed at this disk's mount path
+    # below so they survive redeploys.
+    plan: starter
     healthCheckPath: /health
+    disk:
+      name: xamplus-uploads
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.5
@@ -29,7 +37,9 @@ services:
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: "1440"
       - key: UPLOAD_DIR
-        value: uploads/pdfs
+        value: /var/data/uploads/pdfs
+      - key: DISCUSSION_IMAGE_DIR
+        value: /var/data/uploads/discussion_images
       - key: SEED_ADMIN_EMAIL
         value: admin@example.com
       - key: SEED_ADMIN_PASSWORD

@@ -67,10 +67,12 @@ site). It runs Alembic migrations and seeds the admin user automatically on ever
 - **Coding-question execution** (JDoodle) needs real `JDOODLE_CLIENT_ID` /
   `JDOODLE_CLIENT_SECRET` values — left blank by default, so "Run code" will fail on the deployed
   instance until you add credentials from [jdoodle.com](https://www.jdoodle.com/compiler-api).
-- **Uploaded PDFs don't persist** on Render's free tier — the backend's filesystem is ephemeral, so
-  files uploaded to the PDF library are wiped on every restart/redeploy. Free tier doesn't support
-  persistent disks at all; upgrading the backend service to a paid plan and adding a `disk:` block
-  back to `render.yaml` fixes this if you need PDFs to survive.
+- **Uploaded files need a paid plan to persist.** `render.yaml` mounts a 1GB disk on the backend
+  service at `/var/data` (`UPLOAD_DIR`/`DISCUSSION_IMAGE_DIR` point PDFs and Xipe Community images
+  at it) so they survive restarts/redeploys — but Render disks require the `starter` plan or above,
+  which is why the backend's `plan` was bumped up from `free`. If you drop back to the free plan,
+  remove the `disk:` block and those two env var overrides, and uploaded files will go back to
+  being wiped on every redeploy.
 
 ### First push
 This project directory has its own git history, separate from anything else on your machine:
