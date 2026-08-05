@@ -1,25 +1,12 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { BookOpen, FileText, Plus, Target } from "lucide-react";
-import { useAuth } from "../auth/AuthContext";
-import { createSubject, fetchSubjects } from "../lib/subjects";
-import { Button } from "../components/ui/Button";
+import { BookOpen, FileText, Target } from "lucide-react";
+import { fetchSubjects } from "../lib/subjects";
 import { Card } from "../components/ui/Card";
-import { Input } from "../components/ui/Input";
-import { Textarea } from "../components/ui/Textarea";
-import { Modal } from "../components/ui/Modal";
 import { Loader } from "../components/ui/Loader";
 import { SearchInput } from "../components/ui/SearchInput";
-import { Select } from "../components/ui/Select";
 import type { EducationLevel } from "../types/api";
-
-interface SubjectFormValues {
-  name: string;
-  description: string;
-  education_level: EducationLevel | "";
-}
 
 const EDUCATION_LEVEL_LABELS: Record<EducationLevel, string> = {
   school: "School",
@@ -37,9 +24,6 @@ const TILE_STYLES = [
 ];
 
 export function Subjects() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const { data: subjects, isLoading } = useQuery({ queryKey: ["subjects"], queryFn: fetchSubjects });
@@ -50,30 +34,11 @@ export function Subjects() {
     return s.name.toLowerCase().includes(q) || (s.description ?? "").toLowerCase().includes(q);
   });
 
-  const { register, handleSubmit, reset, formState } = useForm<SubjectFormValues>();
-
-  const createMutation = useMutation({
-    mutationFn: (values: SubjectFormValues) =>
-      createSubject(values.name, values.description, values.education_level),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subjects"] });
-      setModalOpen(false);
-      reset();
-    },
-  });
-
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ink">Subjects</h1>
-          <p className="mt-1 text-sm text-ink-muted">Browse engineering subjects to practice.</p>
-        </div>
-        {user?.role === "admin" && (
-          <Button onClick={() => setModalOpen(true)} className="w-fit shrink-0">
-            <Plus size={16} /> New subject
-          </Button>
-        )}
+      <div>
+        <h1 className="font-display text-2xl font-semibold text-ink">Subjects</h1>
+        <p className="mt-1 text-sm text-ink-muted">Browse engineering subjects to practice.</p>
       </div>
 
       {!isLoading && subjects && subjects.length > 0 && (
@@ -124,32 +89,6 @@ export function Subjects() {
           </Link>
         ))}
       </div>
-
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="New subject">
-        <form
-          onSubmit={handleSubmit((values) => createMutation.mutate(values))}
-          className="flex flex-col gap-4"
-        >
-          <Input label="Name" placeholder="e.g. Digital Electronics" {...register("name", { required: true })} />
-          <Textarea
-            label="Description"
-            placeholder="Short description of what this subject covers"
-            rows={3}
-            {...register("description")}
-          />
-          <Select label="Restrict to education level (optional)" {...register("education_level")}>
-            <option value="">Visible to everyone</option>
-            {(Object.entries(EDUCATION_LEVEL_LABELS) as [EducationLevel, string][]).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label} only
-              </option>
-            ))}
-          </Select>
-          <Button type="submit" isLoading={createMutation.isPending} disabled={!formState.isValid} className="w-full">
-            <FileText size={16} /> Create subject
-          </Button>
-        </form>
-      </Modal>
     </div>
   );
 }

@@ -17,6 +17,9 @@ import { StudentsProgress } from "./pages/admin/StudentsProgress";
 import { StudentDetail } from "./pages/admin/StudentDetail";
 import { UserManagement } from "./pages/admin/UserManagement";
 import { PlatformDashboard } from "./pages/admin/PlatformDashboard";
+import { SubjectExamAdmin } from "./pages/admin/SubjectExamAdmin";
+import { PdfAdmin } from "./pages/admin/PdfAdmin";
+import { PuzzleAdmin } from "./pages/admin/PuzzleAdmin";
 import { ExamTake } from "./pages/ExamTake";
 import { ExamResult } from "./pages/ExamResult";
 import { Discussion } from "./pages/Discussion";
@@ -141,6 +144,36 @@ function App() {
               <RoleRoute role="admin">
                 <AppShell>
                   <PlatformDashboard />
+                </AppShell>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/subjects"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <SubjectExamAdmin />
+                </AppShell>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/pdfs"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <PdfAdmin />
+                </AppShell>
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="/admin/puzzles"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <PuzzleAdmin />
                 </AppShell>
               </RoleRoute>
             }

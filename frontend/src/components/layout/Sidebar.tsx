@@ -6,6 +6,7 @@ import {
   Building2,
   CalendarDays,
   Code2,
+  FileText,
   Flag,
   GitBranch,
   LayoutDashboard,
@@ -42,10 +43,13 @@ const navLinks = [
 
 const adminNavLinks = [
   { to: "/admin/overview", label: "Overview", icon: BarChart3 },
+  { to: "/admin/subjects", label: "Subjects & exams", icon: BookOpen },
+  { to: "/admin/pdfs", label: "PDF library", icon: FileText },
+  { to: "/admin/puzzles", label: "Puzzle bank", icon: Puzzle },
+  { to: "/admin/companies", label: "Company bank", icon: Building2 },
   { to: "/admin/students", label: "Student progress", icon: Users },
   { to: "/admin/users", label: "Manage users", icon: UserCog },
   { to: "/admin/reports", label: "Question reports", icon: Flag },
-  { to: "/admin/companies", label: "Company bank", icon: Building2 },
 ];
 
 function Tooltip({ label }: { label: string }) {
