@@ -38,6 +38,7 @@ export function K8sLearn() {
   const [showHint, setShowHint] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const completed = new Set(progress?.completed_level_ids ?? []);
   const level = K8S_LEVELS[levelIndex];
@@ -55,6 +56,7 @@ export function K8sLearn() {
     setLog([]);
     setShowHint(false);
     setJustCompleted(false);
+    inputRef.current?.focus();
   }, [level]);
 
   useEffect(() => {
@@ -200,7 +202,7 @@ export function K8sLearn() {
               <Terminal size={14} /> Terminal
             </div>
             <div className="max-h-56 overflow-y-auto rounded-lg bg-black/20 p-3 font-mono text-xs leading-relaxed text-base">
-              {log.length === 0 && <p className="text-base/40">Type a kubectl command below and press Enter.</p>}
+              {log.length === 0 && <p className="text-base/40">Output will appear here once you run a command below.</p>}
               {log.map((entry, i) => (
                 <div key={i} className="mb-2">
                   <p className="text-accent-soft">$ {entry.command}</p>
@@ -211,25 +213,30 @@ export function K8sLearn() {
               ))}
               <div ref={logEndRef} />
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm text-accent-soft">$</span>
+            <label
+              htmlFor="k8s-terminal-input"
+              className="flex items-center gap-2 rounded-lg border border-accent-soft/40 bg-black/25 px-3 py-2.5 transition-colors focus-within:border-accent-soft focus-within:ring-2 focus-within:ring-accent-soft/20"
+            >
+              <span className="font-mono text-sm font-semibold text-accent-soft">$</span>
               <input
+                id="k8s-terminal-input"
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && runInput()}
-                placeholder="kubectl ..."
+                placeholder="Type your kubectl command here and press Enter..."
                 spellCheck={false}
                 autoCapitalize="off"
-                className="flex-1 bg-transparent font-mono text-sm text-base outline-none placeholder:text-base/30"
+                className="flex-1 bg-transparent font-mono text-sm text-base outline-none placeholder:text-base/40"
               />
               <Button
                 variant="outline"
                 onClick={runInput}
-                className="border-base/20 py-1.5 text-xs !text-base hover:bg-white/10"
+                className="border-base/20 py-1 text-xs !text-base hover:bg-white/10"
               >
                 Run
               </Button>
-            </div>
+            </label>
           </div>
         </div>
       </div>
