@@ -19,7 +19,6 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { Loader } from "../components/ui/Loader";
-import { ComingSoon } from "../components/ui/ComingSoon";
 
 interface ItemFormValues {
   title: string;
@@ -63,7 +62,6 @@ export function AiRadar() {
   const { data: items, isLoading } = useQuery({
     queryKey: ["ai-radar"],
     queryFn: fetchAiRadarItems,
-    enabled: status?.enabled === true,
   });
 
   const { register, handleSubmit, reset, formState } = useForm<ItemFormValues>({ defaultValues: EMPTY_FORM });
@@ -150,14 +148,7 @@ export function AiRadar() {
 
   if (statusLoading) return <Loader label="Loading..." />;
 
-  if (!status?.enabled) {
-    return (
-      <ComingSoon
-        title="AI Radar isn't available here"
-        description="This environment doesn't have AI features enabled, so the daily news search and reasoning pipeline can't run."
-      />
-    );
-  }
+  const aiEnabled = status?.enabled === true;
 
   return (
     <div className="flex flex-col gap-6">
@@ -171,11 +162,26 @@ export function AiRadar() {
           </p>
         </div>
         {isAdmin && (
-          <Button onClick={() => runMutation.mutate()} isLoading={runMutation.isPending} variant="outline">
+          <Button
+            onClick={() => runMutation.mutate()}
+            isLoading={runMutation.isPending}
+            variant="outline"
+            disabled={!aiEnabled}
+            title={aiEnabled ? undefined : "Automatic search + reasoning needs AI features enabled in this environment."}
+          >
             <RefreshCw size={14} /> Run pipeline now
           </Button>
         )}
       </div>
+
+      {isAdmin && !aiEnabled && (
+        <Card className="border-warning/30 bg-warning/5">
+          <p className="text-sm text-ink">
+            AI features aren't enabled in this environment, so the daily search + reasoning pipeline can't run here.
+            You can still browse existing items and add entries manually below.
+          </p>
+        </Card>
+      )}
 
       {isAdmin && runMutation.isSuccess && (
         <Card className={runError ? "border-danger/30 bg-danger/5" : "border-accent/30 bg-accent/5"}>
@@ -316,7 +322,7 @@ export function AiRadar() {
                     >
                       Visit source <ExternalLink size={14} />
                     </a>
-                    {isAdmin && (
+                    {isAdmin && aiEnabled && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
