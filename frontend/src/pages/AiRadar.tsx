@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ExternalLink, Pencil, Plus, Radio, RefreshCw, Trash2, X } from "lucide-react";
+import { ChevronDown, ExternalLink, Pencil, Plus, Radio, RefreshCw, Sparkles, Trash2, X } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { fetchAiStatus } from "../lib/ai";
 import {
   createAiRadarItem,
   deleteAiRadarItem,
   fetchAiRadarItems,
+  reasonAiRadarItem,
   runAiRadarPipeline,
   updateAiRadarItem,
 } from "../lib/aiRadar";
@@ -114,6 +115,20 @@ export function AiRadar() {
       setRunError(result.error);
     },
     onError: (err) => setRunError(extractErrorMessage(err, "Pipeline run failed.")),
+  });
+
+  const [reasonErrors, setReasonErrors] = useState<Record<number, string>>({});
+  const reasonMutation = useMutation({
+    mutationFn: (id: number) => reasonAiRadarItem(id),
+    onSuccess: (_data, id) => {
+      invalidate();
+      setReasonErrors((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+    },
+    onError: (err, id) => setReasonErrors((prev) => ({ ...prev, [id]: extractErrorMessage(err, "Reasoning failed.") })),
   });
 
   function startEdit(item: AiRadarItem) {
@@ -288,15 +303,36 @@ export function AiRadar() {
                     </div>
                   )}
                   {!hasDetail && <p className="text-sm text-ink-muted">No reasoning available for this item yet.</p>}
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="flex w-fit items-center gap-1.5 text-sm font-medium text-accent hover:underline"
-                  >
-                    Visit source <ExternalLink size={14} />
-                  </a>
+                  {isAdmin && reasonErrors[item.id] && (
+                    <p className="text-sm text-danger">{reasonErrors[item.id]}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-4">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex w-fit items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+                    >
+                      Visit source <ExternalLink size={14} />
+                    </a>
+                    {isAdmin && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          reasonMutation.mutate(item.id);
+                        }}
+                        disabled={reasonMutation.isPending && reasonMutation.variables === item.id}
+                        className="flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50"
+                      >
+                        <Sparkles
+                          size={14}
+                          className={cn(reasonMutation.isPending && reasonMutation.variables === item.id && "animate-pulse")}
+                        />
+                        {hasDetail ? "Re-run reasoning" : "Generate reasoning"}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </Card>

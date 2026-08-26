@@ -8,6 +8,7 @@ from app.db.session import get_db
 from app.models.ai_radar import AiRadarItem
 from app.models.user import User
 from app.schemas.ai_radar import AiRadarItemIn, AiRadarItemOut, AiRadarRunResult
+from app.services import ollama
 from app.services.ai_radar import run_ai_radar_pipeline
 
 router = APIRouter(prefix="/ai-radar", tags=["ai-radar"])
@@ -59,6 +60,26 @@ async def delete_ai_radar_item(item_id: int, db: AsyncSession = Depends(get_db),
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI Radar item not found")
     await db.delete(item)
     await db.commit()
+
+
+@router.post("/{item_id}/reason", response_model=AiRadarItemOut)
+async def reason_ai_radar_item(item_id: int, db: AsyncSession = Depends(get_db), _: User = Depends(require_admin)):
+    _require_ai_enabled()
+    item = await db.get(AiRadarItem, item_id)
+    if item is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="AI Radar item not found")
+
+    outcome = await ollama.reason_about_ai_news(item.title, item.snippet or "")
+    if outcome["error"]:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=outcome["error"])
+
+    data = outcome["data"] or {}
+    item.summary = data.get("summary")
+    cases = data.get("use_cases")
+    item.use_cases = "\n".join(f"- {c}" for c in cases) if isinstance(cases, list) else None
+    await db.commit()
+    await db.refresh(item)
+    return item
 
 
 @router.post("/run", response_model=AiRadarRunResult)

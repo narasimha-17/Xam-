@@ -24,3 +24,8 @@ export async function runAiRadarPipeline(): Promise<AiRadarRunResult> {
   const { data } = await api.post<AiRadarRunResult>("/ai-radar/run");
   return data;
 }
+
+export async function reasonAiRadarItem(id: number): Promise<AiRadarItem> {
+  const { data } = await api.post<AiRadarItem>(`/ai-radar/${id}/reason`);
+  return data;
+}
