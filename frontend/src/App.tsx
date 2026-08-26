@@ -38,6 +38,9 @@ import { Jobs } from "./pages/Jobs";
 import { Companies } from "./pages/Companies";
 import { CompanyDetail } from "./pages/CompanyDetail";
 import { CompanyAdmin } from "./pages/admin/CompanyAdmin";
+import { AiRadar } from "./pages/AiRadar";
+import { Courses } from "./pages/Courses";
+import { CoursePlayer } from "./pages/CoursePlayer";
 import { Competitions } from "./pages/Competitions";
 import { CompetitionRoom } from "./pages/CompetitionRoom";
 import { Profile } from "./pages/Profile";
@@ -326,6 +329,36 @@ function App() {
                   <CompanyAdmin />
                 </AppShell>
               </RoleRoute>
+            }
+          />
+          <Route
+            path="/ai-radar"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <AiRadar />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <Courses />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/courses/:id"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <CoursePlayer />
+                </AppShell>
+              </ProtectedRoute>
             }
           />
           <Route

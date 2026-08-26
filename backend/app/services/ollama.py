@@ -406,6 +406,79 @@ shape:
     return {"data": parsed, "error": None}
 
 
+AI_NEWS_SCHEMA = """{
+  "summary": "string, 2-3 sentences summarizing what's new or what capability changed",
+  "use_cases": ["string", "string"]
+}
+Rules: 2-4 use_cases, each a concrete, specific way this platform could use the new capability
+(or, if it genuinely doesn't apply, a single use_cases entry explaining why not)."""
+
+
+class AiNewsOutcome(TypedDict):
+    data: dict | None
+    error: str | None
+
+
+async def reason_about_ai_news(title: str, snippet: str) -> AiNewsOutcome:
+    """Asks the local Ollama model to summarize an AI/model-release news item and reason about
+    how Xam+ specifically could use the new capability. Never raises — same contract as the
+    other generation helpers in this module."""
+    prompt = f"""You are a pragmatic engineering advisor for "Xam+", an engineering exam-prep platform
+(FastAPI + React) that already uses a local LLM for: generating MCQ/MAQ/fill-blank/match/coding
+practice questions from a topic, explaining topics and PDF study material as narrated stories, and
+running mock technical interviews with feedback.
+
+Here is a news item about a new AI model release or capability update:
+Title: {title}
+Snippet: {snippet}
+
+Summarize what's new, then reason concretely about whether and how Xam+ could use this new
+capability (e.g. swapping models, adding a new AI feature, improving speed/quality/cost of an
+existing one).
+
+Respond with ONLY a single JSON object, no markdown code fences, no commentary, matching this
+exact shape:
+{AI_NEWS_SCHEMA}
+"""
+    try:
+        async with httpx.AsyncClient(timeout=3600.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_host}/api/generate",
+                json={
+                    "model": settings.ollama_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.5},
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.ConnectError:
+        return {"data": None, "error": "Could not reach Ollama — is `ollama serve` running?"}
+    except httpx.HTTPStatusError as exc:
+        try:
+            detail = exc.response.json().get("error", exc.response.text)
+        except Exception:
+            detail = exc.response.text
+        return {"data": None, "error": f"Ollama request failed: {detail}"}
+    except httpx.HTTPError as exc:
+        return {"data": None, "error": f"Ollama request failed: {exc}"}
+    except Exception as exc:
+        return {"data": None, "error": f"Unexpected error calling Ollama: {exc}"}
+
+    raw = data.get("response", "")
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"data": None, "error": "Model did not return valid JSON."}
+
+    if not isinstance(parsed, dict) or not parsed.get("summary"):
+        return {"data": None, "error": "Model response was JSON but missing expected fields."}
+
+    return {"data": parsed, "error": None}
+
+
 async def explain_pdf(subject_name: str, title: str, excerpt: str) -> ExplainOutcome:
     """Asks the local Ollama model to explain a PDF's content as a story, with examples and related topics."""
     prompt = f"""You are a friendly, encouraging tutor helping an engineering student understand a piece of

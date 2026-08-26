@@ -26,6 +26,8 @@ from app.models.k8s_learn import K8sLevelProgress
 from app.models.os_learn import OsLevelProgress
 from app.models.company import Company, CompanySubscription, CompanyAptitudeQuestion, CompanyTechnicalQuestion
 from app.models.study_event import StudyEvent
+from app.models.ai_radar import AiRadarItem
+from app.models.course import Course, CourseVideo
 
 __all__ = [
     "User",
@@ -68,4 +70,7 @@ __all__ = [
     "CompanyAptitudeQuestion",
     "CompanyTechnicalQuestion",
     "StudyEvent",
+    "AiRadarItem",
+    "Course",
+    "CourseVideo",
 ]

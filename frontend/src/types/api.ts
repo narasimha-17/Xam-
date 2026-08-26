@@ -978,3 +978,74 @@ export interface StudyEventInput {
   start_time?: string | null;
   notes?: string | null;
 }
+
+// ---------- AI Radar ----------
+
+export interface AiRadarItem {
+  id: number;
+  title: string;
+  url: string;
+  source: string | null;
+  snippet: string | null;
+  query: string;
+  summary: string | null;
+  use_cases: string | null;
+  is_manual: boolean;
+  found_at: string;
+}
+
+export interface AiRadarItemInput {
+  title: string;
+  url: string;
+  source?: string | null;
+  snippet?: string | null;
+  summary?: string | null;
+  use_cases?: string | null;
+}
+
+export interface AiRadarRunResult {
+  added: number;
+  error: string | null;
+}
+
+// ---------- Courses ----------
+
+export interface Course {
+  id: number;
+  title: string;
+  description: string | null;
+  created_at: string;
+  video_count: number;
+}
+
+export interface CourseAdmin extends Course {
+  is_active: boolean;
+}
+
+export interface CourseInput {
+  title: string;
+  description?: string | null;
+  is_active: boolean;
+}
+
+export interface CourseVideo {
+  id: number;
+  title: string;
+  youtube_url: string;
+  order: number;
+}
+
+export interface CourseVideoInput {
+  title: string;
+  youtube_url: string;
+  order: number;
+}
+
+export interface CourseDetail {
+  id: number;
+  title: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  videos: CourseVideo[];
+}

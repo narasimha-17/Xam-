@@ -14,7 +14,9 @@ import {
   Mic,
   PanelLeftClose,
   PanelLeftOpen,
+  PlayCircle,
   Puzzle,
+  Radio,
   ScrollText,
   Swords,
   TrendingUp,
@@ -36,6 +38,8 @@ const navLinks = [
   { to: "/companies", label: "Company Interview Bank", icon: Building2 },
   { to: "/jobs", label: "Off-campus jobs", icon: Briefcase },
   { to: "/competitions", label: "Live competition", icon: Swords },
+  { to: "/ai-radar", label: "AI Radar", icon: Radio },
+  { to: "/courses", label: "Courses", icon: PlayCircle },
   { to: "/progress", label: "Progress", icon: TrendingUp },
   { to: "/planner", label: "Study planner", icon: CalendarDays },
   { to: "/puzzle", label: "Daily puzzle", icon: Puzzle },
@@ -47,7 +51,15 @@ const navLinks = [
 // practice-only pages (coding/dev practice, mock interview, progress, planner, daily puzzle).
 // Subjects is also excluded: subject/exam/PDF management now lives entirely under
 // Admin > Subjects & exams, so the plain student browse page would just be a redundant duplicate.
-const ADMIN_VISIBLE_STUDENT_PATHS = new Set(["/dashboard", "/companies", "/jobs", "/competitions", "/discussion"]);
+const ADMIN_VISIBLE_STUDENT_PATHS = new Set([
+  "/dashboard",
+  "/companies",
+  "/jobs",
+  "/competitions",
+  "/discussion",
+  "/ai-radar",
+  "/courses",
+]);
 
 const adminNavLinks = [
   { to: "/admin/overview", label: "Overview", icon: BarChart3 },
