@@ -477,6 +477,87 @@ exact shape:
     return {"data": parsed, "error": None}
 
 
+RESUME_SCORE_SCHEMA = """{
+  "score": 72,
+  "matched_keywords": ["string", "string"],
+  "missing_keywords": ["string", "string"],
+  "feedback": ["string", "string"]
+}
+Rules: score is an integer 0-100 reflecting ATS-friendliness and (if a job description was given)
+how well the resume matches it. matched_keywords are skills/terms from the job description (or, if
+none was given, generally in-demand terms for the resume's apparent field) that the resume already
+covers. missing_keywords are ones it's missing. feedback has 3-6 short, specific, actionable bullet
+points (formatting, missing sections, vague bullet points, etc.)."""
+
+
+class ResumeScoreOutcome(TypedDict):
+    data: dict | None
+    error: str | None
+
+
+async def score_resume(resume_text: str, job_description: str | None) -> ResumeScoreOutcome:
+    """Asks the local Ollama model to score a resume for ATS-friendliness, optionally against a
+    specific job description. Never raises — same contract as the other helpers in this module."""
+    job_section = (
+        f"""Score it specifically against this job description:
+\"\"\"
+{job_description}
+\"\"\""""
+        if job_description
+        else "No specific job was given — score it for general ATS-friendliness and clarity."
+    )
+    prompt = f"""You are an ATS (Applicant Tracking System) resume screener and career coach.
+
+Resume:
+\"\"\"
+{resume_text}
+\"\"\"
+
+{job_section}
+
+Respond with ONLY a single JSON object, no markdown code fences, no commentary, matching this
+exact shape:
+{RESUME_SCORE_SCHEMA}
+"""
+    try:
+        async with httpx.AsyncClient(timeout=3600.0) as client:
+            resp = await client.post(
+                f"{settings.ollama_host}/api/generate",
+                json={
+                    "model": settings.ollama_model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "format": "json",
+                    "options": {"temperature": 0.4},
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except httpx.ConnectError:
+        return {"data": None, "error": "Could not reach Ollama — is `ollama serve` running?"}
+    except httpx.HTTPStatusError as exc:
+        try:
+            detail = exc.response.json().get("error", exc.response.text)
+        except Exception:
+            detail = exc.response.text
+        return {"data": None, "error": f"Ollama request failed: {detail}"}
+    except httpx.HTTPError as exc:
+        return {"data": None, "error": f"Ollama request failed: {exc}"}
+    except Exception as exc:
+        return {"data": None, "error": f"Unexpected error calling Ollama: {exc}"}
+
+    raw = data.get("response", "")
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {"data": None, "error": "Model did not return valid JSON."}
+
+    if not isinstance(parsed, dict) or "score" not in parsed:
+        return {"data": None, "error": "Model response was JSON but missing expected fields."}
+
+    return {"data": parsed, "error": None}
+
+
 async def explain_pdf(subject_name: str, title: str, excerpt: str) -> ExplainOutcome:
     """Asks the local Ollama model to explain a PDF's content as a story, with examples and related topics."""
     prompt = f"""You are a friendly, encouraging tutor helping an engineering student understand a piece of

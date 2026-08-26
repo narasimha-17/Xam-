@@ -27,6 +27,7 @@ from app.routers import (
     proctoring,
     progress,
     puzzles,
+    resume,
     sql_learn,
     study_events,
     subjects,
@@ -71,6 +72,7 @@ app.include_router(os_learn.router)
 app.include_router(study_events.router)
 app.include_router(ai_radar.router)
 app.include_router(courses.router)
+app.include_router(resume.router)
 
 scheduler = AsyncIOScheduler()
 

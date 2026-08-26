@@ -41,6 +41,7 @@ import { CompanyAdmin } from "./pages/admin/CompanyAdmin";
 import { AiRadar } from "./pages/AiRadar";
 import { Courses } from "./pages/Courses";
 import { CoursePlayer } from "./pages/CoursePlayer";
+import { ResumeBuilder } from "./pages/ResumeBuilder";
 import { Competitions } from "./pages/Competitions";
 import { CompetitionRoom } from "./pages/CompetitionRoom";
 import { Profile } from "./pages/Profile";
@@ -357,6 +358,16 @@ function App() {
               <ProtectedRoute>
                 <AppShell>
                   <CoursePlayer />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resume"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <ResumeBuilder />
                 </AppShell>
               </ProtectedRoute>
             }

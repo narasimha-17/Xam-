@@ -28,6 +28,7 @@ from app.models.company import Company, CompanySubscription, CompanyAptitudeQues
 from app.models.study_event import StudyEvent
 from app.models.ai_radar import AiRadarItem
 from app.models.course import Course, CourseVideo
+from app.models.resume import Resume
 
 __all__ = [
     "User",
@@ -73,4 +74,5 @@ __all__ = [
     "AiRadarItem",
     "Course",
     "CourseVideo",
+    "Resume",
 ]

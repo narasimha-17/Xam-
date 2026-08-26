@@ -1049,3 +1049,55 @@ export interface CourseDetail {
   created_at: string;
   videos: CourseVideo[];
 }
+
+// ---------- Resume builder ----------
+
+export interface ResumeEducation {
+  institution: string;
+  degree: string;
+  field: string;
+  start: string;
+  end: string;
+  gpa: string;
+}
+
+export interface ResumeExperience {
+  company: string;
+  role: string;
+  start: string;
+  end: string;
+  description: string;
+}
+
+export interface ResumeProject {
+  title: string;
+  description: string;
+  tech_stack: string;
+  link: string;
+}
+
+export interface ResumeInput {
+  full_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  summary: string;
+  education: ResumeEducation[];
+  experience: ResumeExperience[];
+  projects: ResumeProject[];
+  skills: string[];
+  certifications: string[];
+}
+
+export interface Resume extends ResumeInput {
+  id: number;
+  updated_at: string;
+}
+
+export interface ResumeScoreResult {
+  score: number | null;
+  matched_keywords: string[];
+  missing_keywords: string[];
+  feedback: string[];
+  error: string | null;
+}

@@ -37,6 +37,7 @@ const navLinks = [
   { to: "/mock-interview", label: "Mock interview", icon: Mic },
   { to: "/companies", label: "Company Interview Bank", icon: Building2 },
   { to: "/jobs", label: "Off-campus jobs", icon: Briefcase },
+  { to: "/resume", label: "Resume builder", icon: FileText },
   { to: "/competitions", label: "Live competition", icon: Swords },
   { to: "/ai-radar", label: "AI Radar", icon: Radio },
   { to: "/courses", label: "Courses", icon: PlayCircle },
