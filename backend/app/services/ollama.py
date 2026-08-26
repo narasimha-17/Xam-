@@ -410,8 +410,9 @@ AI_NEWS_SCHEMA = """{
   "summary": "string, 2-3 sentences summarizing what's new or what capability changed",
   "use_cases": ["string", "string"]
 }
-Rules: 2-4 use_cases, each a concrete, specific way this platform could use the new capability
-(or, if it genuinely doesn't apply, a single use_cases entry explaining why not)."""
+Rules: 2-4 use_cases, each a concrete, general-purpose real-world use case for this capability —
+industries, developer workflows, or user needs it could serve. Not tied to any specific company
+or product."""
 
 
 class AiNewsOutcome(TypedDict):
@@ -421,20 +422,17 @@ class AiNewsOutcome(TypedDict):
 
 async def reason_about_ai_news(title: str, snippet: str) -> AiNewsOutcome:
     """Asks the local Ollama model to summarize an AI/model-release news item and reason about
-    how Xam+ specifically could use the new capability. Never raises — same contract as the
+    general real-world use cases for the new capability. Never raises — same contract as the
     other generation helpers in this module."""
-    prompt = f"""You are a pragmatic engineering advisor for "Xam+", an engineering exam-prep platform
-(FastAPI + React) that already uses a local LLM for: generating MCQ/MAQ/fill-blank/match/coding
-practice questions from a topic, explaining topics and PDF study material as narrated stories, and
-running mock technical interviews with feedback.
+    prompt = f"""You are an AI technology analyst tracking new model releases and capability updates.
 
 Here is a news item about a new AI model release or capability update:
 Title: {title}
 Snippet: {snippet}
 
-Summarize what's new, then reason concretely about whether and how Xam+ could use this new
-capability (e.g. swapping models, adding a new AI feature, improving speed/quality/cost of an
-existing one).
+Summarize what's new, then describe general, concrete real-world use cases for this capability —
+practical applications, industries, or workflows it could serve. Keep it general-purpose, not
+tied to any specific company or product.
 
 Respond with ONLY a single JSON object, no markdown code fences, no commentary, matching this
 exact shape:

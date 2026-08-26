@@ -158,7 +158,7 @@ export function AiRadar() {
             <Radio size={24} className="text-accent-soft" /> AI Radar
           </h1>
           <p className="mt-1 text-sm text-ink-muted">
-            Daily-fetched AI/model-release news, with reasoning on where and how Xam+ could use each capability.
+            Daily-fetched AI/model-release news, with reasoning on real-world use cases for each capability.
           </p>
         </div>
         {isAdmin && (
@@ -208,7 +208,7 @@ export function AiRadar() {
             <Textarea placeholder="Snippet (optional)" rows={2} {...register("snippet")} />
             <Textarea placeholder="Summary — what's new (optional)" rows={2} {...register("summary")} />
             <Textarea
-              placeholder="Use cases — how Xam+ could use this, one per line (optional)"
+              placeholder="Use cases — real-world applications, one per line (optional)"
               rows={3}
               {...register("use_cases")}
             />
@@ -304,7 +304,7 @@ export function AiRadar() {
                   {item.summary && <p className="text-sm text-ink">{item.summary}</p>}
                   {item.use_cases && (
                     <div className="rounded-xl bg-accent/5 p-3 text-sm text-ink-muted">
-                      <p className="mb-1 font-medium text-ink">Where/how Xam+ could use this</p>
+                      <p className="mb-1 font-medium text-ink">Potential use cases</p>
                       <p className="whitespace-pre-line">{item.use_cases}</p>
                     </div>
                   )}
