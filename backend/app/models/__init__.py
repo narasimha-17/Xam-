@@ -29,6 +29,7 @@ from app.models.study_event import StudyEvent
 from app.models.ai_radar import AiRadarItem
 from app.models.course import Course, CourseVideo
 from app.models.resume import Resume
+from app.models.feedback import Feedback
 
 __all__ = [
     "User",
@@ -75,4 +76,5 @@ __all__ = [
     "Course",
     "CourseVideo",
     "Resume",
+    "Feedback",
 ]

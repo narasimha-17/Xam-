@@ -18,6 +18,7 @@ from app.routers import (
     discussions,
     docker_learn,
     exams,
+    feedback,
     git_learn,
     jobs,
     k8s_learn,
@@ -37,6 +38,7 @@ from app.services.ai_radar import run_ai_radar_pipeline
 
 os.makedirs(settings.upload_dir, exist_ok=True)
 os.makedirs(settings.discussion_image_dir, exist_ok=True)
+os.makedirs(settings.feedback_image_dir, exist_ok=True)
 
 app = FastAPI(title="Engineering Practice LMS API")
 
@@ -73,6 +75,7 @@ app.include_router(study_events.router)
 app.include_router(ai_radar.router)
 app.include_router(courses.router)
 app.include_router(resume.router)
+app.include_router(feedback.router)
 
 scheduler = AsyncIOScheduler()
 

@@ -11,6 +11,7 @@ import {
   GitBranch,
   LayoutDashboard,
   MessagesSquare,
+  MessageSquareHeart,
   Mic,
   PanelLeftClose,
   PanelLeftOpen,
@@ -45,6 +46,7 @@ const navLinks = [
   { to: "/planner", label: "Study planner", icon: CalendarDays },
   { to: "/puzzle", label: "Daily puzzle", icon: Puzzle },
   { to: "/discussion", label: "Xipe Community", icon: MessagesSquare },
+  { to: "/feedback", label: "Feedback", icon: MessageSquareHeart },
 ];
 
 // Admin accounts don't practice, so they only get the student pages they actually act on
@@ -68,6 +70,7 @@ const adminNavLinks = [
   { to: "/admin/pdfs", label: "PDF library", icon: FileText },
   { to: "/admin/puzzles", label: "Puzzle bank", icon: Puzzle },
   { to: "/admin/companies", label: "Company bank", icon: Building2 },
+  { to: "/admin/feedback", label: "Feedback", icon: MessageSquareHeart },
   { to: "/admin/students", label: "Student progress", icon: Users },
   { to: "/admin/users", label: "Manage users", icon: UserCog },
   { to: "/admin/reports", label: "Question reports", icon: Flag },

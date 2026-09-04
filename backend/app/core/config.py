@@ -30,6 +30,7 @@ class Settings(BaseSettings):
 
     upload_dir: str = "uploads/pdfs"
     discussion_image_dir: str = "uploads/discussion_images"
+    feedback_image_dir: str = "uploads/feedback_images"
     cors_origins: str = "http://localhost:5173"
     frontend_url: str = "http://localhost:5173"
 

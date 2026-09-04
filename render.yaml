@@ -40,6 +40,8 @@ services:
         value: /var/data/uploads/pdfs
       - key: DISCUSSION_IMAGE_DIR
         value: /var/data/uploads/discussion_images
+      - key: FEEDBACK_IMAGE_DIR
+        value: /var/data/uploads/feedback_images
       - key: SEED_ADMIN_EMAIL
         value: admin@example.com
       - key: SEED_ADMIN_PASSWORD

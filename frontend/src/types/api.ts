@@ -1101,3 +1101,19 @@ export interface ResumeScoreResult {
   feedback: string[];
   error: string | null;
 }
+
+// ---------- Feedback ----------
+
+export interface FeedbackItem {
+  id: number;
+  description: string;
+  rating: number;
+  image_url: string | null;
+  created_at: string;
+}
+
+export interface FeedbackAdminItem extends FeedbackItem {
+  user_id: number;
+  user_name: string;
+  user_email: string;
+}

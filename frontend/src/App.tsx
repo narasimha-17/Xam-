@@ -42,6 +42,8 @@ import { AiRadar } from "./pages/AiRadar";
 import { Courses } from "./pages/Courses";
 import { CoursePlayer } from "./pages/CoursePlayer";
 import { ResumeBuilder } from "./pages/ResumeBuilder";
+import { Feedback } from "./pages/Feedback";
+import { FeedbackAdmin } from "./pages/admin/FeedbackAdmin";
 import { Competitions } from "./pages/Competitions";
 import { CompetitionRoom } from "./pages/CompetitionRoom";
 import { Profile } from "./pages/Profile";
@@ -370,6 +372,26 @@ function App() {
                   <ResumeBuilder />
                 </AppShell>
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/feedback"
+            element={
+              <ProtectedRoute>
+                <AppShell>
+                  <Feedback />
+                </AppShell>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/feedback"
+            element={
+              <RoleRoute role="admin">
+                <AppShell>
+                  <FeedbackAdmin />
+                </AppShell>
+              </RoleRoute>
             }
           />
           <Route
