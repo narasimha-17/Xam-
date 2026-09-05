@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from firebase_admin import auth as firebase_auth
@@ -7,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.firebase import get_firebase_app
 from app.db.session import get_db
 from app.models.user import User, UserRole
+
+logger = logging.getLogger("app.auth")
 
 # tokenUrl is unused (Firebase issues tokens client-side) but required by the OAuth2
 # scheme class; it only affects the OpenAPI docs' "Authorize" button.
@@ -28,6 +32,7 @@ async def get_current_user(
     try:
         decoded = firebase_auth.verify_id_token(token, app=get_firebase_app())
     except Exception:
+        logger.exception("Firebase ID token verification failed")
         raise credentials_error
 
     uid = decoded.get("uid")
