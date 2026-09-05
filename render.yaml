@@ -1,9 +1,3 @@
-databases:
-  - name: xamplus-db
-    databaseName: xamplus
-    user: xamplus
-    plan: free
-
 services:
   - type: web
     name: xamplus-backend
@@ -24,28 +18,26 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.5
+      # Database now lives on Neon (Render's free Postgres expires/suspends after 30
+      # days) — set both to the Neon connection string manually in the dashboard.
       - key: DATABASE_URL
-        fromDatabase:
-          name: xamplus-db
-          property: connectionString
+        sync: false
       - key: SYNC_DATABASE_URL
-        fromDatabase:
-          name: xamplus-db
-          property: connectionString
-      - key: JWT_SECRET_KEY
-        generateValue: true
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: "1440"
+        sync: false
+      # Firebase Admin SDK service account JSON (raw JSON string) — set manually,
+      # never committed. See backend/app/core/firebase.py.
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
       - key: UPLOAD_DIR
         value: /var/data/uploads/pdfs
       - key: DISCUSSION_IMAGE_DIR
         value: /var/data/uploads/discussion_images
       - key: FEEDBACK_IMAGE_DIR
         value: /var/data/uploads/feedback_images
+      # The account that becomes admin the first time it signs in via Firebase
+      # (Google or email/password) — set this to an email you actually control.
       - key: SEED_ADMIN_EMAIL
         value: admin@example.com
-      - key: SEED_ADMIN_PASSWORD
-        generateValue: true
       - key: SEED_ADMIN_NAME
         value: Admin
       - key: AI_FEATURES_ENABLED
@@ -66,6 +58,20 @@ services:
     envVars:
       # Set this to the backend service's URL after the first deploy (see README.md).
       - key: VITE_API_URL
+        sync: false
+      # Firebase web config (not secret, but set manually since these come from the
+      # Firebase console). See frontend/src/lib/firebase.ts.
+      - key: VITE_FIREBASE_API_KEY
+        sync: false
+      - key: VITE_FIREBASE_AUTH_DOMAIN
+        sync: false
+      - key: VITE_FIREBASE_PROJECT_ID
+        sync: false
+      - key: VITE_FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: VITE_FIREBASE_MESSAGING_SENDER_ID
+        sync: false
+      - key: VITE_FIREBASE_APP_ID
         sync: false
     routes:
       - type: rewrite

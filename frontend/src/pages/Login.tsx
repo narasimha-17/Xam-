@@ -3,18 +3,23 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Award, BookOpen, GraduationCap, Laptop } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import { firebaseErrorMessage } from "../auth/firebaseError";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Logo } from "../components/ui/Logo";
+import { GoogleIcon } from "../components/ui/GoogleIcon";
 
 export function Login() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/dashboard";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -22,12 +27,24 @@ export function Login() {
     setIsLoading(true);
     try {
       await login(email, password);
-      const redirectTo = (location.state as { from?: string } | null)?.from ?? "/dashboard";
       navigate(redirectTo, { replace: true });
-    } catch {
-      setError("Incorrect email or password.");
+    } catch (err) {
+      setError(firebaseErrorMessage(err, "Incorrect email or password."));
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      setError(firebaseErrorMessage(err, "Could not sign in with Google."));
+    } finally {
+      setIsGoogleLoading(false);
     }
   }
 
@@ -72,6 +89,20 @@ export function Login() {
               Sign in
             </Button>
           </form>
+          <div className="my-5 flex items-center gap-3 text-xs text-ink-faint">
+            <div className="h-px flex-1 bg-black/10" />
+            or
+            <div className="h-px flex-1 bg-black/10" />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            isLoading={isGoogleLoading}
+            onClick={handleGoogleSignIn}
+            className="w-full"
+          >
+            <GoogleIcon size={16} /> Sign in with Google
+          </Button>
           <p className="mt-6 text-center text-sm text-ink-muted">
             New to Xam+?{" "}
             <Link to="/register" className="text-accent-soft hover:underline">

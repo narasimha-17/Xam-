@@ -1,12 +1,16 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from firebase_admin import auth as firebase_auth
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import decode_access_token
+from app.core.firebase import get_firebase_app
 from app.db.session import get_db
 from app.models.user import User, UserRole
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
+# tokenUrl is unused (Firebase issues tokens client-side) but required by the OAuth2
+# scheme class; it only affects the OpenAPI docs' "Authorize" button.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/me", auto_error=False)
 
 
 async def get_current_user(
@@ -21,14 +25,32 @@ async def get_current_user(
     if token is None:
         raise credentials_error
 
-    payload = decode_access_token(token)
-    if payload is None or "sub" not in payload:
+    try:
+        decoded = firebase_auth.verify_id_token(token, app=get_firebase_app())
+    except Exception:
         raise credentials_error
 
-    user_id = int(payload["sub"])
-    user = await db.get(User, user_id)
-    if user is None:
+    uid = decoded.get("uid")
+    email = decoded.get("email")
+    if not uid or not email:
         raise credentials_error
+
+    user = await db.scalar(select(User).where(User.firebase_uid == uid))
+    if user is None:
+        # Either a brand-new sign-in, or a pre-seeded row (e.g. the admin) waiting to
+        # be claimed by whoever first logs in with that email.
+        user = await db.scalar(select(User).where(User.email == email))
+        if user is None:
+            user = User(
+                email=email,
+                full_name=decoded.get("name") or email.split("@")[0],
+                role=UserRole.student,
+            )
+            db.add(user)
+        user.firebase_uid = uid
+        await db.commit()
+        await db.refresh(user)
+
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This account has been disabled")
     return user

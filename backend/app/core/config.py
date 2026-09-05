@@ -1,3 +1,5 @@
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,11 +13,20 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def _ensure_async_driver(cls, v: str) -> str:
-        # Managed Postgres providers (Render, Railway, etc.) hand out a plain
+        # Managed Postgres providers (Neon, Render, Railway, etc.) hand out a plain
         # postgresql:// URL — the async engine needs the asyncpg driver explicitly.
         if v.startswith("postgresql://"):
-            return v.replace("postgresql://", "postgresql+asyncpg://", 1)
-        return v
+            v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+        # asyncpg's connect() doesn't understand libpq-style `sslmode`/`channel_binding`
+        # query params (unlike psycopg2) — translate sslmode into asyncpg's own `ssl`
+        # param and drop channel_binding, which asyncpg negotiates on its own.
+        parts = urlsplit(v)
+        query = parse_qs(parts.query)
+        if "sslmode" in query:
+            query["ssl"] = query.pop("sslmode")
+        query.pop("channel_binding", None)
+        return urlunsplit(parts._replace(query=urlencode(query, doseq=True)))
 
     @field_validator("sync_database_url")
     @classmethod
@@ -24,9 +35,7 @@ class Settings(BaseSettings):
             return v.replace("postgresql://", "postgresql+psycopg2://", 1)
         return v
 
-    jwt_secret_key: str = "change-me-to-a-random-secret"
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 24
+    firebase_service_account_json: str = ""
 
     upload_dir: str = "uploads/pdfs"
     discussion_image_dir: str = "uploads/discussion_images"
@@ -35,7 +44,6 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:5173"
 
     seed_admin_email: str = "admin@example.com"
-    seed_admin_password: str = "changeme123"
     seed_admin_name: str = "Admin"
 
     jdoodle_client_id: str = ""

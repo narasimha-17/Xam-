@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Award, BookOpen, GraduationCap, Laptop } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import { firebaseErrorMessage } from "../auth/firebaseError";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { Logo } from "../components/ui/Logo";
+import { GoogleIcon } from "../components/ui/GoogleIcon";
 
 export function Register() {
-  const { register } = useAuth();
+  const { register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,6 +21,7 @@ export function Register() {
   const [institution, setInstitution] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -35,13 +38,23 @@ export function Register() {
         institution,
       });
       navigate("/dashboard", { replace: true });
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
-        "Could not create account.";
-      setError(message);
+    } catch (err) {
+      setError(firebaseErrorMessage(err, "Could not create account."));
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError(null);
+    setIsGoogleLoading(true);
+    try {
+      await loginWithGoogle();
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(firebaseErrorMessage(err, "Could not sign up with Google."));
+    } finally {
+      setIsGoogleLoading(false);
     }
   }
 
@@ -152,6 +165,20 @@ export function Register() {
               Create account
             </Button>
           </form>
+          <div className="my-5 flex items-center gap-3 text-xs text-ink-faint">
+            <div className="h-px flex-1 bg-black/10" />
+            or
+            <div className="h-px flex-1 bg-black/10" />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            isLoading={isGoogleLoading}
+            onClick={handleGoogleSignIn}
+            className="w-full"
+          >
+            <GoogleIcon size={16} /> Sign up with Google
+          </Button>
           <p className="mt-6 text-center text-sm text-ink-muted">
             Already have an account?{" "}
             <Link to="/login" className="text-accent-soft hover:underline">

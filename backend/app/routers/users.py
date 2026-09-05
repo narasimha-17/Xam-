@@ -1,11 +1,12 @@
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from firebase_admin import auth as firebase_auth
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import require_admin
-from app.core.security import hash_password
+from app.core.firebase import get_firebase_app
 from app.db.session import get_db
 from app.models.discussion import DiscussionPost, DiscussionThread
 from app.models.exam import ExamAttempt, QuestionReport
@@ -83,9 +84,14 @@ async def admin_reset_password(
     target = await db.get(User, user_id)
     if target is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if target.firebase_uid is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This user hasn't signed in yet, so there's no Firebase account to reset.",
+        )
 
     temp_password = secrets.token_urlsafe(9)
-    target.hashed_password = hash_password(temp_password)
+    firebase_auth.update_user(target.firebase_uid, password=temp_password, app=get_firebase_app())
     await log_admin_action(db, admin.id, "reset_password", "user", user_id)
     await db.commit()
     return AdminResetPasswordOut(temporary_password=temp_password)
@@ -106,6 +112,13 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db), admin: U
     await db.execute(delete(DiscussionThread).where(DiscussionThread.created_by == user_id))
 
     email = target.email
+    firebase_uid = target.firebase_uid
     await db.delete(target)
     await log_admin_action(db, admin.id, "delete_user", "user", user_id, email)
     await db.commit()
+
+    if firebase_uid:
+        try:
+            firebase_auth.delete_user(firebase_uid, app=get_firebase_app())
+        except Exception:
+            pass  # local row is already gone; a stray Firebase account isn't worth failing this request over

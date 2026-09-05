@@ -29,7 +29,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    firebase_uid: Mapped[str | None] = mapped_column(String(128), unique=True, index=True, nullable=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     roll_number: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     section: Mapped[str | None] = mapped_column(String(32), nullable=True)

@@ -37,12 +37,6 @@ export interface ProfileStats {
   badges: Badge[];
 }
 
-export interface Token {
-  access_token: string;
-  token_type: string;
-  user: User;
-}
-
 export interface Topic {
   id: number;
   subject_id: number;

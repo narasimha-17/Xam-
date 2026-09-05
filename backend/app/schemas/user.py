@@ -22,29 +22,6 @@ AVATAR_IDS = {
 }
 
 
-class UserRegister(BaseModel):
-    email: EmailStr
-    password: str
-    full_name: str
-    roll_number: str
-    phone_number: str
-    location: str
-    institution: str
-
-    @field_validator("full_name", "roll_number", "phone_number", "location", "institution")
-    @classmethod
-    def not_blank(cls, v: str) -> str:
-        stripped = v.strip()
-        if not stripped:
-            raise ValueError("This field is required")
-        return stripped
-
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -76,8 +53,6 @@ class UserUpdate(BaseModel):
     gender: Gender | None = None
     education_level: EducationLevel | None = None
     avatar_id: str | None = None
-    current_password: str | None = None
-    new_password: str | None = None
 
     @field_validator("avatar_id")
     @classmethod
@@ -85,12 +60,6 @@ class UserUpdate(BaseModel):
         if v is not None and v not in AVATAR_IDS:
             raise ValueError("Unknown avatar")
         return v
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: UserOut
 
 
 class UserRoleUpdate(BaseModel):
@@ -103,16 +72,6 @@ class UserActiveUpdate(BaseModel):
 
 class AdminResetPasswordOut(BaseModel):
     temporary_password: str
-
-
-class ForgotPasswordIn(BaseModel):
-    email: EmailStr
-
-
-class ResetPasswordIn(BaseModel):
-    email: EmailStr
-    otp: str
-    new_password: str
 
 
 class BadgeOut(BaseModel):

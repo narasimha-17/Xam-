@@ -14,7 +14,7 @@ from app.models.exam import (
 )
 from app.models.discussion import DiscussionThread, DiscussionPost
 from app.models.proctoring import ProctorEvent, ProctorEventType
-from app.models.system import PasswordResetToken, AdminActivityLog, Notification
+from app.models.system import AdminActivityLog, Notification
 from app.models.puzzle import Puzzle, PuzzleAttempt
 from app.models.coding import CodingProblem, CodingTestCase, CodingSubmission
 from app.models.job import JobPosting
@@ -49,7 +49,6 @@ __all__ = [
     "DiscussionPost",
     "ProctorEvent",
     "ProctorEventType",
-    "PasswordResetToken",
     "AdminActivityLog",
     "Notification",
     "Puzzle",

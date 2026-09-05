@@ -3,8 +3,27 @@
 Engineering practice platform — practice exams (MCQ, MAQ, match-the-following, fill-in-the-blank), a PDF study library, discussion threads, and progress tracking. Two roles: **admin/instructor** (manages content) and **student** (practices).
 
 ## Stack
-- **Backend**: FastAPI, SQLAlchemy (async), PostgreSQL, Alembic, JWT auth
+- **Backend**: FastAPI, SQLAlchemy (async), PostgreSQL (hosted on [Neon](https://neon.tech)), Alembic,
+  Firebase Authentication (email/password + Google)
 - **Frontend**: React + TypeScript (Vite), Tailwind CSS, React Router, React Query, Framer Motion
+
+## Auth & database setup (do this first)
+Login is handled entirely by **Firebase Authentication** — the backend never sees a password, it
+only verifies Firebase ID tokens. The database is a plain Postgres instance on **Neon** (Render's
+own free Postgres expires/suspends after 30 days, which is why this isn't on Render).
+
+1. **Neon**: create a free project at [neon.tech](https://neon.tech) and copy its connection
+   string (`postgres://user:pass@host/dbname?sslmode=require`) — use it for both
+   `DATABASE_URL`/`SYNC_DATABASE_URL` below.
+2. **Firebase**: create a project at the [Firebase Console](https://console.firebase.google.com):
+   - **Authentication → Sign-in method**: enable **Google** and **Email/Password**.
+   - **Project settings → General → Your apps**: add a **Web app**, copy its config
+     (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`) into
+     `frontend/.env`'s `VITE_FIREBASE_*` vars.
+   - **Project settings → Service accounts**: **Generate new private key** (downloads a JSON
+     file). Minify it to one line and set it as `backend/.env`'s `FIREBASE_SERVICE_ACCOUNT_JSON`.
+3. Whoever signs in (Google or email/password) with the email in `SEED_ADMIN_EMAIL` becomes admin
+   automatically on first login — see `python -m app.seed_admin` below.
 
 ## Local development
 
@@ -14,9 +33,9 @@ cd backend
 python -m venv .venv
 ./.venv/Scripts/activate        # or source .venv/bin/activate on macOS/Linux
 pip install -r requirements.txt
-cp .env.example .env             # adjust DATABASE_URL/SYNC_DATABASE_URL for your Postgres
+cp .env.example .env             # fill in DATABASE_URL/SYNC_DATABASE_URL (Neon) and FIREBASE_SERVICE_ACCOUNT_JSON
 alembic upgrade head
-python -m app.seed_admin         # creates the initial admin user (see .env for credentials)
+python -m app.seed_admin         # pre-seeds SEED_ADMIN_EMAIL as admin, claimed on its first real login
 uvicorn app.main:app --reload
 ```
 API docs: http://localhost:8000/docs
@@ -25,6 +44,7 @@ API docs: http://localhost:8000/docs
 ```
 cd frontend
 npm install
+# fill in VITE_FIREBASE_* in .env (see "Auth & database setup" above)
 npm run dev
 ```
 App: http://localhost:5173
@@ -33,30 +53,34 @@ App: http://localhost:5173
 ```
 docker compose up
 ```
-Brings up Postgres, the backend, and the frontend together.
+Brings up Postgres, the backend, and the frontend together. (You can still point `DATABASE_URL`
+at Neon instead of the local `db` service if you'd rather share data with your Render deployment.)
 
 ## Default admin login
-Set in `backend/.env` (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`), created by `python -m app.seed_admin`.
+Set `SEED_ADMIN_EMAIL` in `backend/.env` / `render.yaml`, seeded by `python -m app.seed_admin`.
+There's no password to set — sign in with that exact email via Firebase (Google or
+email/password) and it becomes admin automatically.
 
 ## Deploying (Render)
 
-This repo includes a `render.yaml` blueprint that provisions everything: a managed Postgres
-database, the FastAPI backend (as a native Python web service — no Docker, so no payment
-verification required), and the React frontend (as a static
-site). It runs Alembic migrations and seeds the admin user automatically on every deploy.
+This repo includes a `render.yaml` blueprint for the backend (FastAPI, as a native Python web
+service — no Docker, so no payment verification required) and the React frontend (as a static
+site). The database and auth are external (Neon + Firebase, see above), so `render.yaml` no
+longer provisions a Render-managed Postgres.
 
 1. **Push this repo to GitHub** (see "First push" below if you haven't already).
 2. In the [Render dashboard](https://dashboard.render.com), click **New > Blueprint** and point it
-   at your GitHub repo. Render will read `render.yaml` and create all three resources
-   (`xamplus-db`, `xamplus-backend`, `xamplus-frontend`).
-3. Let the first deploy finish for both services, then wire them together (Vite bakes
-   `VITE_API_URL` in at build time, so this can't be known ahead of the first deploy):
-   - On **xamplus-backend** → Environment: set `CORS_ORIGINS` and `FRONTEND_URL` to your
-     frontend's URL (e.g. `https://xamplus-frontend.onrender.com`), then save (no rebuild needed).
-   - On **xamplus-frontend** → Environment: set `VITE_API_URL` to your backend's URL
-     (e.g. `https://xamplus-backend.onrender.com`), then trigger **Manual Deploy** to rebuild.
-4. Get the auto-generated admin password from **xamplus-backend** → Environment →
-   `SEED_ADMIN_PASSWORD`, and sign in with `SEED_ADMIN_EMAIL`.
+   at your GitHub repo. Render will read `render.yaml` and create both resources
+   (`xamplus-backend`, `xamplus-frontend`).
+3. On **xamplus-backend** → Environment, set manually (all marked `sync: false` in `render.yaml`):
+   - `DATABASE_URL` / `SYNC_DATABASE_URL` — your Neon connection string.
+   - `FIREBASE_SERVICE_ACCOUNT_JSON` — the service account JSON (one line).
+   - `CORS_ORIGINS` / `FRONTEND_URL` — your frontend's URL, once you know it (see step 4).
+4. On **xamplus-frontend** → Environment, set: `VITE_API_URL` (your backend's URL) and the six
+   `VITE_FIREBASE_*` vars — then trigger **Manual Deploy** (Vite bakes these in at build time, so
+   changing them always needs a rebuild).
+5. Redeploy **xamplus-backend** once its env vars are set — this runs `alembic upgrade head`
+   against Neon and seeds the admin placeholder.
 
 ### Known limitations in this deployment
 - **AI features are off by default** (`AI_FEATURES_ENABLED=false` in `render.yaml`) — AI question
